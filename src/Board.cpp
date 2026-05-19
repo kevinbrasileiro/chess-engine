@@ -38,3 +38,9 @@ void Board::setupBoard() {
 Piece Board::getPiece(int file, int rank) const {
   return board[file][rank];
 }
+
+void Board::movePiece(Position from, Position to) {
+  board[to.file][to.rank] = board[from.file][from.rank];
+
+  board[from.file][from.rank] = EMPTY;
+}

@@ -10,6 +10,9 @@ int main() {
 
   Board board;
 
+  bool selected = false;
+  Position selectedPos = {-1, -1};
+
   std::map<Piece, sf::Texture> textures;
 
   textures[W_PAWN].loadFromFile("../assets/w-pawn.png");
@@ -37,7 +40,18 @@ int main() {
           int mouseX = event.mouseButton.x;
           int mouseY = event.mouseButton.y;
 
-          std::cout << "Clicked " << mouseX / TILE_SIZE << mouseY / TILE_SIZE << std::endl;
+          int file = mouseX / TILE_SIZE;
+          int rank = mouseY / TILE_SIZE;
+
+          if (selected && board.getPiece(file, rank) == EMPTY) {
+            board.movePiece(selectedPos, {file, rank});
+            selected = false;
+            selectedPos = {-1, -1};
+          } else {
+            selected = true;
+            selectedPos.file = file;
+            selectedPos.rank = rank;
+          }
         }
       }
     }

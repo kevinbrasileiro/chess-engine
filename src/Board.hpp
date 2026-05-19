@@ -1,3 +1,9 @@
+
+struct Position {
+  int file;
+  int rank;
+};
+
 enum Piece {
   EMPTY, 
 
@@ -19,7 +25,9 @@ enum Piece {
 class Board {
 public:
   Board();
-  Piece getPiece(int rank, int file) const;
+  Piece getPiece(int file, int rank) const;
+
+  void movePiece(Position from, Position to);
 
 private:
   Piece board[8][8];
