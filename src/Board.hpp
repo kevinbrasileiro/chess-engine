@@ -29,6 +29,8 @@ public:
 
   void movePiece(Position from, Position to);
 
+  bool isValidMove(Position from, Position to);
+
 private:
   Piece board[8][8];
 

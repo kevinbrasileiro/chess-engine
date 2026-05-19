@@ -43,11 +43,11 @@ int main() {
           int file = mouseX / TILE_SIZE;
           int rank = mouseY / TILE_SIZE;
 
-          if (selected && board.getPiece(file, rank) == EMPTY) {
+          if (selected && board.isValidMove(selectedPos, {file, rank})) {
             board.movePiece(selectedPos, {file, rank});
             selected = false;
             selectedPos = {-1, -1};
-          } else {
+          } else if (board.getPiece(file, rank) != EMPTY) {
             selected = true;
             selectedPos.file = file;
             selectedPos.rank = rank;
@@ -66,10 +66,12 @@ int main() {
 
         if ((file + rank) % 2 == 0) {
           square.setFillColor(sf::Color(240, 217, 181));
-
         } else {
           square.setFillColor(sf::Color(181, 136, 99));
+        }
 
+        if (file == selectedPos.file && rank == selectedPos.rank) {
+          square.setFillColor(sf::Color(240, 238, 132));
         }
 
         window.draw(square);

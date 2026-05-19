@@ -1,3 +1,4 @@
+#include <cmath> 
 #include "Board.hpp"
 
 Board::Board() {
@@ -43,4 +44,58 @@ void Board::movePiece(Position from, Position to) {
   board[to.file][to.rank] = board[from.file][from.rank];
 
   board[from.file][from.rank] = EMPTY;
+}
+
+bool Board::isValidMove(Position from, Position to) {
+  Piece piece = board[from.file][from.rank];
+
+  int dx = from.file - to.file;
+  int dy = from.rank - to.rank;
+
+  switch (piece) {
+  
+  case W_PAWN:
+    if (from.rank == 6) {
+      return dx == 0 && dy <= 2;
+    } else {
+      return dx == 0 && dy == 1;
+    }
+    break;
+
+  case B_PAWN:
+    if (from.rank == 1) {
+      return dx == 0 && dy >= -2;
+    } else {
+      return dx == 0 && dy == -1;
+    }
+    break;
+
+  case W_BISHOP:
+  case B_BISHOP:
+    return std::abs(dx) == std::abs(dy);
+    break;
+
+  case W_ROOK:
+  case B_ROOK:
+      return std::abs(dx) == 0 || std::abs(dy) == 0;
+      break;
+
+  case W_QUEEN:
+  case B_QUEEN:
+      return (std::abs(dx) == 0 || std::abs(dy) == 0) || (std::abs(dx) == std::abs(dy));
+      break;
+
+  case W_KNIGHT:
+  case B_KNIGHT:
+    return (std::abs(dx) == 2 && std::abs(dy) == 1) || (std::abs(dx) == 1 && std::abs(dy) == 2);
+    break;
+  
+  case W_KING:
+  case B_KING:
+    return std::abs(dx) <= 1 && std::abs(dy) <= 1;
+    break;
+
+  default:
+    return true;
+  }
 }
