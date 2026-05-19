@@ -40,33 +40,49 @@ Piece Board::getPiece(int file, int rank) const {
   return board[file][rank];
 }
 
+Color Board::getColor(Piece piece) {
+  if (piece == EMPTY) return NO_COLOR;
+
+  if (piece <= W_KING) return WHITE;
+
+  return BLACK;
+}
+
 void Board::movePiece(Position from, Position to) {
   board[to.file][to.rank] = board[from.file][from.rank];
+  
+  turn = turn == WHITE ? BLACK : WHITE;
 
   board[from.file][from.rank] = EMPTY;
 }
 
 bool Board::isValidMove(Position from, Position to) {
   Piece piece = board[from.file][from.rank];
+  Piece target = board[to.file][to.rank];
 
-  int dx = from.file - to.file;
-  int dy = from.rank - to.rank;
+  if (getColor(piece) != turn) return false;
+
+  if (getColor(piece) == getColor(target)) return false;
+  if (from.file == to.file && from.rank == to.rank) return false;
+
+  int dx = to.file - from.file;
+  int dy = to.rank - from.rank;
 
   switch (piece) {
   
   case W_PAWN:
     if (from.rank == 6) {
-      return dx == 0 && dy <= 2;
+      return dx == 0 && dy >= -2;
     } else {
-      return dx == 0 && dy == 1;
+      return dx == 0 && dy == -1;
     }
     break;
 
   case B_PAWN:
     if (from.rank == 1) {
-      return dx == 0 && dy >= -2;
+      return dx == 0 && dy <= 2;
     } else {
-      return dx == 0 && dy == -1;
+      return dx == 0 && dy == 1;
     }
     break;
 
@@ -77,12 +93,12 @@ bool Board::isValidMove(Position from, Position to) {
 
   case W_ROOK:
   case B_ROOK:
-      return std::abs(dx) == 0 || std::abs(dy) == 0;
+      return dx == 0 || dy == 0;
       break;
 
   case W_QUEEN:
   case B_QUEEN:
-      return (std::abs(dx) == 0 || std::abs(dy) == 0) || (std::abs(dx) == std::abs(dy));
+      return (dx == 0 || dy == 0) || (std::abs(dx) == std::abs(dy));
       break;
 
   case W_KNIGHT:
@@ -96,6 +112,6 @@ bool Board::isValidMove(Position from, Position to) {
     break;
 
   default:
-    return true;
+    return false;
   }
 }
