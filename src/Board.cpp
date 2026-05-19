@@ -2,6 +2,7 @@
 #include "Board.hpp"
 
 Board::Board() {
+  turn = WHITE;
   setupBoard();
 }
 
@@ -36,82 +37,102 @@ void Board::setupBoard() {
   board[7][7] = W_ROOK;
 }
 
-Piece Board::getPiece(int file, int rank) const {
-  return board[file][rank];
+Piece Board::getPiece(Position pos) const {
+  return board[pos.file][pos.rank];
 }
 
-Color Board::getColor(Piece piece) {
-  if (piece == EMPTY) return NO_COLOR;
-
-  if (piece <= W_KING) return WHITE;
-
-  return BLACK;
+Color Board::getTurn() const {
+  return turn;
 }
 
-void Board::movePiece(Position from, Position to) {
-  board[to.file][to.rank] = board[from.file][from.rank];
+void Board::makeMove(const Move& move) {
+  board[move.to.file][move.to.rank] = move.movedPiece;
+  board[move.from.file][move.from.rank] = EMPTY;
+
+  turn = getTurn() == WHITE ? BLACK : WHITE;
+}
+
+void Board::undoMove(const Move& move) {
+  board[move.from.file][move.from.rank] = move.movedPiece;
+  board[move.to.file][move.to.rank] = move.capturedPiece;
+
+  turn = getTurn() == WHITE ? BLACK : WHITE;
+}
+
+// bool Board::isValidMove(Position from, Position to) {
+//   Piece piece = board[from.file][from.rank];
+//   Piece target = board[to.file][to.rank];
+
+//   if (getColor(piece) != turn) return false;
+
+//   if (getColor(piece) == getColor(target)) return false;
+//   if (from.file == to.file && from.rank == to.rank) return false;
+
+//   int dx = to.file - from.file;
+//   int dy = to.rank - from.rank;
+
+//   switch (piece) {
   
-  turn = turn == WHITE ? BLACK : WHITE;
+//   case W_PAWN:
+//     if (from.rank == 6) {
+//       return dx == 0 && dy >= -2;
+//     } else {
+//       return dx == 0 && dy == -1;
+//     }
+//     break;
 
-  board[from.file][from.rank] = EMPTY;
-}
+//   case B_PAWN:
+//     if (from.rank == 1) {
+//       return dx == 0 && dy <= 2;
+//     } else {
+//       return dx == 0 && dy == 1;
+//     }
+//     break;
 
-bool Board::isValidMove(Position from, Position to) {
-  Piece piece = board[from.file][from.rank];
-  Piece target = board[to.file][to.rank];
+//   case W_BISHOP:
+//   case B_BISHOP:
+//     return abs(dx) == abs(dy) && isPathClear(from, to);
+//     break;
 
-  if (getColor(piece) != turn) return false;
+//   case W_ROOK:
+//   case B_ROOK:
+//       return (dx == 0 || dy == 0) && isPathClear(from, to);
+//       break;
 
-  if (getColor(piece) == getColor(target)) return false;
-  if (from.file == to.file && from.rank == to.rank) return false;
+//   case W_QUEEN:
+//   case B_QUEEN:
+//       return ((dx == 0 || dy == 0) || (abs(dx) == abs(dy))) && isPathClear(from, to);
+//       break;
 
-  int dx = to.file - from.file;
-  int dy = to.rank - from.rank;
-
-  switch (piece) {
+//   case W_KNIGHT:
+//   case B_KNIGHT:
+//     return (abs(dx) == 2 && abs(dy) == 1) || (abs(dx) == 1 && abs(dy) == 2);
+//     break;
   
-  case W_PAWN:
-    if (from.rank == 6) {
-      return dx == 0 && dy >= -2;
-    } else {
-      return dx == 0 && dy == -1;
-    }
-    break;
+//   case W_KING:
+//   case B_KING:
+//     return abs(dx) <= 1 && abs(dy) <= 1;
+//     break;
 
-  case B_PAWN:
-    if (from.rank == 1) {
-      return dx == 0 && dy <= 2;
-    } else {
-      return dx == 0 && dy == 1;
-    }
-    break;
+//   default:
+//     return false;
+//   }
+// }
 
-  case W_BISHOP:
-  case B_BISHOP:
-    return std::abs(dx) == std::abs(dy);
-    break;
+// bool Board::isPathClear(Position from, Position to) {
+//   int dx = to.file - from.file;
+//   int dy = to.rank - from.rank;
 
-  case W_ROOK:
-  case B_ROOK:
-      return dx == 0 || dy == 0;
-      break;
+//   int currentX = from.file;
+//   int currentY = from.rank;
 
-  case W_QUEEN:
-  case B_QUEEN:
-      return (dx == 0 || dy == 0) || (std::abs(dx) == std::abs(dy));
-      break;
-
-  case W_KNIGHT:
-  case B_KNIGHT:
-    return (std::abs(dx) == 2 && std::abs(dy) == 1) || (std::abs(dx) == 1 && std::abs(dy) == 2);
-    break;
-  
-  case W_KING:
-  case B_KING:
-    return std::abs(dx) <= 1 && std::abs(dy) <= 1;
-    break;
-
-  default:
-    return false;
-  }
-}
+//   while (currentX != to.file || currentY != to.rank) {
+//     if (dx != 0) currentX += dx > 0 ? 1 : -1;
+//     if (dy != 0) currentY += dy > 0 ? 1 : -1;
+    
+//     if (board[currentX][currentY] != EMPTY) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }

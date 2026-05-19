@@ -1,46 +1,21 @@
 #pragma once
-struct Position {
-  int file;
-  int rank;
-};
 
-enum Piece {
-  EMPTY, 
-
-  W_PAWN,
-  W_ROOK,
-  W_KNIGHT,
-  W_BISHOP,
-  W_QUEEN,
-  W_KING,
-
-  B_PAWN,
-  B_ROOK,
-  B_KNIGHT,
-  B_BISHOP,
-  B_QUEEN,
-  B_KING,
-};
-
-enum Color {
-  NO_COLOR,
-  WHITE,
-  BLACK
-};
+#include "Types.hpp"
+#include "Move.hpp"
 
 class Board {
 public:
   Board();
-  Piece getPiece(int file, int rank) const;
-  Color getColor(Piece piece);
 
-  void movePiece(Position from, Position to);
+  Piece getPiece(Position pos) const;
+  Color getTurn() const;
 
-  bool isValidMove(Position from, Position to);
-
+  void makeMove(const Move& move);
+  void undoMove(const Move& move);
+  
 private:
   Piece board[8][8];
-  Color turn = WHITE;
+  Color turn;
 
   void setupBoard();
 };

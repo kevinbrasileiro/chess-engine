@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Board.hpp"
+#include "MoveGenerator.hpp"
 
 const int TILE_SIZE = 100;
 const int BOARD_SIZE = 8;
@@ -34,25 +35,37 @@ int main() {
 
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) window.close();
+      if (event.type != sf::Event::MouseButtonPressed || event.mouseButton.button != sf::Mouse::Left) continue;
 
-      if (event.type == sf::Event::MouseButtonPressed) {
-        if (event.mouseButton.button == sf::Mouse::Left) {
-          int mouseX = event.mouseButton.x;
-          int mouseY = event.mouseButton.y;
+      Position clickedPos = {event.mouseButton.x / TILE_SIZE, event.mouseButton.y / TILE_SIZE};
 
-          int file = mouseX / TILE_SIZE;
-          int rank = mouseY / TILE_SIZE;
+      if (selected) {
+        auto moves = MoveGenerator::generateMoves(board, selectedPos);
+        bool moved = false;
 
-          if (selected && board.isValidMove(selectedPos, {file, rank})) {
-            board.movePiece(selectedPos, {file, rank});
+        for (const auto& move : moves) {
+          if (move.to.file == clickedPos.file && move.to.rank == clickedPos.rank) {
+            board.makeMove(move);
+            moved = true;
+
             selected = false;
             selectedPos = {-1, -1};
-          } else if (board.getPiece(file, rank) != EMPTY) {
-            selected = true;
-            selectedPos.file = file;
-            selectedPos.rank = rank;
-          }
+
+            break;
+          } 
         }
+
+        if (moved || board.getPiece(clickedPos) == EMPTY) {
+          selected = false;
+          selectedPos = {-1, -1};
+        } else {
+          selected = true;
+          selectedPos = clickedPos;
+        }
+
+      } else if (board.getPiece(clickedPos) != EMPTY) {
+        selected = true;
+        selectedPos = clickedPos;
       }
     }
 
@@ -76,7 +89,7 @@ int main() {
 
         window.draw(square);
 
-        Piece piece = board.getPiece(file, rank);
+        Piece piece = board.getPiece({file, rank});
 
         if (piece == EMPTY) {
           continue;
