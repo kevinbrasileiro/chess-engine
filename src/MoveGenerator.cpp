@@ -61,7 +61,7 @@ void MoveGenerator::generateKnightMoves(const Board& board, Position pos, std::v
     int targetFile = pos.file + jump[0];
     int targetRank = pos.rank + jump[1];
 
-    if (targetFile < 0 || targetFile > 7 || targetRank < 0 || targetRank > 7) continue;
+    if (!board.isInside(targetFile, targetRank)) continue;
 
     Piece target = board.getPiece({targetFile, targetRank});
 
@@ -91,7 +91,7 @@ void MoveGenerator::generateBishopMoves(const Board& board, Position pos, std::v
     int currentFile = pos.file + direction[0];
     int currentRank = pos.rank + direction[1];
 
-    while (currentFile >= 0 && currentFile <= 7 && currentRank >= 0 && currentRank <= 7) {
+    while (board.isInside(currentFile, currentRank)) {
       Piece target = board.getPiece({currentFile, currentRank});
 
       if (target == EMPTY) {
@@ -125,7 +125,7 @@ void MoveGenerator::generateRookMoves(const Board& board, Position pos, std::vec
     int currentFile = pos.file + direction[0];
     int currentRank = pos.rank + direction[1];
 
-    while (currentFile >= 0 && currentFile <= 7 && currentRank >= 0 && currentRank <= 7) {
+    while (board.isInside(currentFile, currentRank)) {
       Piece target = board.getPiece({currentFile, currentRank});
 
       if (target == EMPTY) {
@@ -171,7 +171,12 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
   }
 
   for (const auto& offset : captureOffsets) {
-    Piece capturablePiece = board.getPiece({pos.file + offset, pos.rank + direction});
+    int targetFile = pos.file + offset;
+    int targetRank = pos.rank + direction;
+
+    if (!board.isInside(targetFile, targetRank)) continue;
+
+    Piece capturablePiece = board.getPiece({targetFile, targetRank});
     if (capturablePiece == EMPTY) continue;
 
     if (board.getPieceColor(piece) != board.getPieceColor(capturablePiece)) {
@@ -197,6 +202,8 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
   for (const auto& direction : directions) {
     int currentFile = pos.file + direction[0];
     int currentRank = pos.rank + direction[1];
+
+    if (!board.isInside(currentFile, currentRank)) continue;
 
     Piece target = board.getPiece({currentFile, currentRank});
 

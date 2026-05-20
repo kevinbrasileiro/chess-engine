@@ -7,6 +7,8 @@ class Board {
 public:
   Board();
 
+  bool isInside(int file, int rank) const;
+
   Piece getPiece(Position pos) const;
   Color getPieceColor(Piece piece) const;
   Color getTurn() const;

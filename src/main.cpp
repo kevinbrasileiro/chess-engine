@@ -30,6 +30,10 @@ int main() {
   textures[B_QUEEN].loadFromFile("../assets/b-queen.png");
   textures[B_KING].loadFromFile("../assets/b-king.png");
 
+  for (auto& [piece, texture] : textures) {
+    texture.setSmooth(true);
+  }
+
   while (window.isOpen()) {
     sf::Event event;
 
@@ -98,7 +102,6 @@ int main() {
         sf::Sprite sprite;
 
         sprite.setTexture(textures[piece]);
-        textures[piece].setSmooth(true);
 
         sprite.setScale(90.f / 128.f, 90.f / 128.f);
         sprite.setPosition(file * TILE_SIZE + 5, rank * TILE_SIZE + 5);
