@@ -1,7 +1,209 @@
 #include "MoveGenerator.hpp"
 
 std::vector<Move> MoveGenerator::generateMoves(const Board& board, Position pos) {
-  return {
-    {pos, {pos.file, pos.rank - 1}, board.getPiece(pos), EMPTY}
+  std::vector<Move> moves = {};
+  Piece piece = board.getPiece(pos);
+
+  switch (piece) {
+    case W_PAWN:
+    case B_PAWN:
+      generatePawnMoves(board, pos, moves);
+      break;
+
+    case W_KNIGHT:
+    case B_KNIGHT:
+      generateKnightMoves(board, pos, moves);
+      break;
+
+    case W_BISHOP:
+    case B_BISHOP:
+      generateBishopMoves(board, pos, moves);
+      break;
+
+    case W_ROOK:
+    case B_ROOK:
+      generateRookMoves(board, pos, moves);
+      break;
+
+    case W_QUEEN:
+    case B_QUEEN:
+      generateBishopMoves(board, pos, moves);
+      generateRookMoves(board, pos, moves);
+      break;
+
+    case W_KING:
+    case B_KING:
+      generateKingMoves(board, pos, moves);
+      break;
+
+    default:
+      break;
+  }
+
+  return moves;
+};
+
+void MoveGenerator::generateKnightMoves(const Board& board, Position pos, std::vector<Move>& moves) {
+  static const int jumps[8][2] = {
+    {2, 1},
+    {2, -1},
+    {-2, 1},
+    {-2, -1},
+    {1, 2},
+    {1, -2},
+    {-1, 2},
+    {-1, -2}
   };
+
+  Piece piece = board.getPiece(pos);
+
+  for (const auto& jump : jumps) {
+    int targetFile = pos.file + jump[0];
+    int targetRank = pos.rank + jump[1];
+
+    if (targetFile < 0 || targetFile > 7 || targetRank < 0 || targetRank > 7) continue;
+
+    Piece target = board.getPiece({targetFile, targetRank});
+
+    if (target == EMPTY) {
+      moves.push_back({pos, {targetFile, targetRank}, piece, target});
+      continue;
+    }
+
+    if (board.getPieceColor(target) != board.getPieceColor(piece)) {
+      moves.push_back({pos, {targetFile, targetRank}, piece, target});
+      continue;
+    }
+  }
+}
+
+void MoveGenerator::generateBishopMoves(const Board& board, Position pos, std::vector<Move>& moves) {
+  static const int directions[4][2] = {
+    {-1, -1},
+    {-1, 1},
+    {1, -1},
+    {1, 1},
+  };
+
+  Piece piece = board.getPiece(pos);
+
+  for (const auto& direction : directions) {
+    int currentFile = pos.file + direction[0];
+    int currentRank = pos.rank + direction[1];
+
+    while (currentFile >= 0 && currentFile <= 7 && currentRank >= 0 && currentRank <= 7) {
+      Piece target = board.getPiece({currentFile, currentRank});
+
+      if (target == EMPTY) {
+        moves.push_back({pos, {currentFile, currentRank}, piece, target});
+      } else {
+
+        if (board.getPieceColor(target) != board.getPieceColor(piece)) {
+          moves.push_back({pos, {currentFile, currentRank}, piece, target});
+        }
+
+        break;
+      }
+
+      currentFile += direction[0];
+      currentRank += direction[1];
+    }
+  }
+}
+
+void MoveGenerator::generateRookMoves(const Board& board, Position pos, std::vector<Move>& moves) {
+  static const int directions[4][2] = {
+    {0, -1},
+    {0, 1},
+    {1, 0},
+    {-1, 0},
+  };
+
+  Piece piece = board.getPiece(pos);
+
+  for (const auto& direction : directions) {
+    int currentFile = pos.file + direction[0];
+    int currentRank = pos.rank + direction[1];
+
+    while (currentFile >= 0 && currentFile <= 7 && currentRank >= 0 && currentRank <= 7) {
+      Piece target = board.getPiece({currentFile, currentRank});
+
+      if (target == EMPTY) {
+        moves.push_back({pos, {currentFile, currentRank}, piece, target});
+      } else {
+
+        if (board.getPieceColor(target) != board.getPieceColor(piece)) {
+          moves.push_back({pos, {currentFile, currentRank}, piece, target});
+        }
+
+        break;
+      }
+
+      currentFile += direction[0];
+      currentRank += direction[1];
+    }
+  }
+}
+
+void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vector<Move>& moves) {
+  Piece piece = board.getPiece(pos);
+
+  bool isWhite = board.getPieceColor(piece) == WHITE;
+
+  int direction = isWhite ? -1 : 1;
+  int startRank = isWhite ? 6 : 1;
+  static const int captureOffsets[2] = {-1, 1};
+
+  int forwardRank = pos.rank + direction;
+
+  if (forwardRank < 0 || forwardRank > 7) return;
+
+  if (board.getPiece({pos.file, forwardRank}) == EMPTY) {
+    moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY });
+
+    if (pos.rank == startRank) {
+      int doubleForwardRank = pos.rank + 2 * direction;
+
+      if (board.getPiece({pos.file, doubleForwardRank}) == EMPTY) {
+        moves.push_back({pos, {pos.file, doubleForwardRank}, piece, EMPTY});
+      }
+    }
+  }
+
+  for (const auto& offset : captureOffsets) {
+    Piece capturablePiece = board.getPiece({pos.file + offset, pos.rank + direction});
+    if (capturablePiece == EMPTY) continue;
+
+    if (board.getPieceColor(piece) != board.getPieceColor(capturablePiece)) {
+      moves.push_back({pos, {pos.file + offset, pos.rank + direction}, piece, capturablePiece});
+    }
+  }
+}
+
+void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vector<Move>& moves) {
+  static const int directions[8][2] = {
+    {1, 1},
+    {1, 0},
+    {1, -1},
+    {0, -1},
+    {-1, -1},
+    {-1, 0},
+    {-1, 1},
+    {0, 1},
+  };
+
+  Piece piece = board.getPiece(pos);
+
+  for (const auto& direction : directions) {
+    int currentFile = pos.file + direction[0];
+    int currentRank = pos.rank + direction[1];
+
+    Piece target = board.getPiece({currentFile, currentRank});
+
+    if (target == EMPTY) {
+      moves.push_back({pos, {currentFile, currentRank}, piece, target});
+    } else if (board.getPieceColor(target) != board.getPieceColor(piece)) {
+      moves.push_back({pos, {currentFile, currentRank}, piece, target});
+    }
+  }
 }

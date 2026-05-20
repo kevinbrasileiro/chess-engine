@@ -8,6 +8,7 @@ public:
   Board();
 
   Piece getPiece(Position pos) const;
+  Color getPieceColor(Piece piece) const;
   Color getTurn() const;
 
   void makeMove(const Move& move);

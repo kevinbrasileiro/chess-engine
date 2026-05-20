@@ -41,6 +41,11 @@ Piece Board::getPiece(Position pos) const {
   return board[pos.file][pos.rank];
 }
 
+Color Board::getPieceColor(Piece p) const {
+  if (p == EMPTY) return NO_COLOR;
+  return p <= W_KING ? WHITE : BLACK;
+}
+
 Color Board::getTurn() const {
   return turn;
 }
