@@ -184,7 +184,14 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
   if (forwardRank < 0 || forwardRank > 7) return;
 
   if (board.getPiece({pos.file, forwardRank}) == EMPTY) {
-    moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, pos.rank == promotionRank ? PROMOTION : NORMAL});
+    if (pos.rank == promotionRank) {
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_QUEEN});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_ROOK});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_BISHOP});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_KNIGHT});
+    } else {
+        moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY});
+    }
 
     if (pos.rank == startRank) {
       int doubleForwardRank = pos.rank + 2 * direction;
@@ -211,7 +218,14 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
     }
 
     if (board.getPieceColor(piece) != board.getPieceColor(capturablePiece)) {
-      moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, pos.rank == promotionRank ? PROMOTION : NORMAL});
+      if (pos.rank == promotionRank) {
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_QUEEN});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_ROOK});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_BISHOP});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_KNIGHT});
+      } else {
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece});
+      }
     }
   }
 }

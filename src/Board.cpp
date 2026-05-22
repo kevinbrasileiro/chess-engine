@@ -5,43 +5,87 @@
 
 Board::Board() {
   turn = WHITE;
-  setupBoard();
+  setupBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
 
-void Board::setupBoard() {
+void Board::setupBoard(const std::string& fen) {
   for (int file = 0; file < 8; file++) {
     for (int rank = 0; rank < 8; rank++) {
       board[file][rank] = EMPTY;
     }
   }
 
-  for (int file = 0; file < 8; file++) {
-    board[file][1] = B_PAWN;
-    board[file][6] = W_PAWN;
+  std::stringstream ss(fen);
+
+  std::string placement;
+  std::string activeColor;
+  std::string castling;
+  std::string enPassant;
+
+  ss >> placement >> activeColor >> castling >> enPassant;
+
+  int rank = 0;
+  int file = 0;
+
+  for (char c : placement) {
+    if (c == '/') {
+      rank++;
+      file = 0;
+      continue;
+    }
+
+    if (std::isdigit(c)) {
+      file += c - '0';
+      continue;
+    }
+
+    Piece piece = EMPTY;
+
+    switch (c) {
+      case 'P': piece = W_PAWN; break;
+      case 'N': piece = W_KNIGHT; break;
+      case 'B': piece = W_BISHOP; break;
+      case 'R': piece = W_ROOK; break;
+      case 'Q': piece = W_QUEEN; break;
+      case 'K': piece = W_KING; break;
+
+      case 'p': piece = B_PAWN; break;
+      case 'n': piece = B_KNIGHT; break;
+      case 'b': piece = B_BISHOP; break;
+      case 'r': piece = B_ROOK; break;
+      case 'q': piece = B_QUEEN; break;
+      case 'k': piece = B_KING; break;
+    }
+
+    board[file][rank] = piece;
+
+    if (piece == W_KING)
+      wKingPos = {file, rank};
+
+    if (piece == B_KING)
+      bKingPos = {file, rank};
+
+    file++;
   }
 
-  board[0][0] = B_ROOK;
-  board[1][0] = B_KNIGHT;
-  board[2][0] = B_BISHOP;
-  board[3][0] = B_QUEEN;
-  board[4][0] = B_KING;
-  board[5][0] = B_BISHOP;
-  board[6][0] = B_KNIGHT;
-  board[7][0] = B_ROOK;
+  turn = activeColor == "w" ? WHITE : BLACK;
 
-  board[0][7] = W_ROOK;
-  board[1][7] = W_KNIGHT;
-  board[2][7] = W_BISHOP;
-  board[3][7] = W_QUEEN;
-  board[4][7] = W_KING;
-  board[5][7] = W_BISHOP;
-  board[6][7] = W_KNIGHT;
-  board[7][7] = W_ROOK;
+  castlingRights = {false, false, false, false};
 
-  wKingPos = {4, 7};
-  bKingPos = {4, 0};
+  for (char c : castling) {
+    switch (c) {
+      case 'K': castlingRights.whiteKingside = true; break;
+      case 'Q': castlingRights.whiteQueenside = true; break;
+      case 'k': castlingRights.blackKingside = true; break;
+      case 'q': castlingRights.blackQueenside = true; break;
+    }
+  }
 
-  castlingRights = {true, true, true, true};
+  if (enPassant != "-") {
+    enPassantFile = enPassant[0] - 'a';
+  } else {
+    enPassantFile = -1;
+  }
 }
 
 bool Board::isInside(int file, int rank) const {
@@ -68,9 +112,24 @@ void Board::makeMove(const Move& move) {
   Piece pieceToPlace = move.movedPiece;
   bool isWhite = getPieceColor(pieceToPlace) == WHITE;
 
-  if (move.flag == PROMOTION) {
+  switch (move.flag) {
+  case PROMOTION_QUEEN:
     pieceToPlace = isWhite ? W_QUEEN : B_QUEEN;
+    break;
+  case PROMOTION_ROOK:
+    pieceToPlace = isWhite ? W_ROOK : B_ROOK;
+    break;
+  case PROMOTION_BISHOP:
+    pieceToPlace = isWhite ? W_BISHOP : B_BISHOP;
+    break;
+  case PROMOTION_KNIGHT:
+    pieceToPlace = isWhite ? W_KNIGHT : B_KNIGHT;
+    break;
+  default:
+    break;
   }
+
+  moveCastleRook(move);
 
   enPassantHistory.push_back(enPassantFile);
   enPassantFile = -1;
@@ -87,7 +146,6 @@ void Board::makeMove(const Move& move) {
   
   castlingHistory.push_back(castlingRights);
   updateCastlingRights(move);
-  moveCastleRook(move);
 
   board[move.to.file][move.to.rank] = pieceToPlace;
   board[move.from.file][move.from.rank] = EMPTY;
@@ -102,12 +160,16 @@ void Board::undoMove(const Move& move) {
   Piece pieceToPlace = move.movedPiece;
   bool isWhite = getPieceColor(pieceToPlace) == WHITE;
 
-  if (move.flag == PROMOTION) {
+  if (move.flag >= PROMOTION_QUEEN) {
     pieceToPlace = isWhite ? W_PAWN : B_PAWN;
   }
 
   enPassantFile = enPassantHistory.back();
   enPassantHistory.pop_back();
+
+  castlingRights = castlingHistory.back();
+  castlingHistory.pop_back();
+
   if (move.flag == EN_PASSANT) {
     int direction = isWhite ? 1 : -1;
 
@@ -116,13 +178,10 @@ void Board::undoMove(const Move& move) {
   } else {
     board[move.to.file][move.to.rank] = move.capturedPiece;
   }
-
-  castlingRights = castlingHistory.back();
-  castlingHistory.pop_back();
-  undoCastleRook(move);
   
   board[move.from.file][move.from.rank] = pieceToPlace;
-
+  
+  undoCastleRook(move);
   turn = (turn == WHITE) ? BLACK : WHITE;
 }
 
@@ -150,6 +209,16 @@ void Board::updateCastlingRights(const Move& move) {
   
   default:
     break;
+  }
+
+  if (move.capturedPiece == W_ROOK) {
+      if (move.to.file == 0 && move.to.rank == 7) castlingRights.whiteQueenside = false;
+      if (move.to.file == 7 && move.to.rank == 7) castlingRights.whiteKingside = false;
+  }
+
+  if (move.capturedPiece == B_ROOK) {
+      if (move.to.file == 0 && move.to.rank == 0) castlingRights.blackQueenside = false;
+      if (move.to.file == 7 && move.to.rank == 0) castlingRights.blackKingside = false;
   }
 }
 

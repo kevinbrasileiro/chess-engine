@@ -5,6 +5,10 @@
 
 #include <vector>
 
+#include <sstream>
+#include <string>
+#include <cctype>
+
 class Board {
 public:
   Board();
@@ -39,5 +43,5 @@ private:
   void moveCastleRook(const Move& move);
   void undoCastleRook(const Move& move);
 
-  void setupBoard();
+  void setupBoard(const std::string& fen);
 };
