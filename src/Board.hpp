@@ -15,10 +15,16 @@ public:
 
   void makeMove(const Move& move);
   void undoMove(const Move& move);
+
+  Position findKing(Color color);
+  bool isKingAttacked(Position pos);
   
 private:
   Piece board[8][8];
   Color turn;
+
+  Position wKingPos;
+  Position bKingPos;
 
   void setupBoard();
 };

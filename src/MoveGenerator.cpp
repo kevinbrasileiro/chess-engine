@@ -1,6 +1,25 @@
 #include "MoveGenerator.hpp"
 
-std::vector<Move> MoveGenerator::generateMoves(const Board& board, Position pos) {
+std::vector<Move> MoveGenerator::generateMoves(Board& board, Position pos) {
+  std::vector<Move> legalMoves;
+  std::vector<Move> pseudoMoves = generatePseudoLegalMoves(board, pos);
+
+  Color movingSide = board.getTurn();
+  for (const auto& move : pseudoMoves) {
+    board.makeMove(move);
+    Position kingPos = board.findKing(movingSide);
+
+    if (!board.isKingAttacked(kingPos)) {
+      legalMoves.push_back(move);
+    }
+
+    board.undoMove(move);
+  }
+
+  return legalMoves;
+}
+
+std::vector<Move> MoveGenerator::generatePseudoLegalMoves(const Board& board, Position pos) {
   std::vector<Move> moves = {};
   Piece piece = board.getPiece(pos);
 
