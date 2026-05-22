@@ -40,6 +40,8 @@ void Board::setupBoard() {
 
   wKingPos = {4, 7};
   bKingPos = {4, 0};
+
+  castlingRights = {true, true, true, true};
 }
 
 bool Board::isInside(int file, int rank) const {
@@ -82,11 +84,15 @@ void Board::makeMove(const Move& move) {
 
     board[move.to.file][move.to.rank + direction] = EMPTY;
   }
+  
+  castlingHistory.push_back(castlingRights);
+  updateCastlingRights(move);
+  moveCastleRook(move);
 
   board[move.to.file][move.to.rank] = pieceToPlace;
   board[move.from.file][move.from.rank] = EMPTY;
 
-  turn = getTurn() == WHITE ? BLACK : WHITE;
+  turn = (turn == WHITE) ? BLACK : WHITE;
 }
 
 void Board::undoMove(const Move& move) {
@@ -94,7 +100,7 @@ void Board::undoMove(const Move& move) {
   if (move.movedPiece == B_KING) bKingPos = move.from;
 
   Piece pieceToPlace = move.movedPiece;
-  bool isWhite = getPieceColor(pieceToPlace);
+  bool isWhite = getPieceColor(pieceToPlace) == WHITE;
 
   if (move.flag == PROMOTION) {
     pieceToPlace = isWhite ? W_PAWN : B_PAWN;
@@ -110,32 +116,84 @@ void Board::undoMove(const Move& move) {
   } else {
     board[move.to.file][move.to.rank] = move.capturedPiece;
   }
+
+  castlingRights = castlingHistory.back();
+  castlingHistory.pop_back();
+  undoCastleRook(move);
   
   board[move.from.file][move.from.rank] = pieceToPlace;
 
-  turn = getTurn() == WHITE ? BLACK : WHITE;
+  turn = (turn == WHITE) ? BLACK : WHITE;
+}
+
+void Board::updateCastlingRights(const Move& move) {
+  Piece pieceMoved = move.movedPiece;
+
+  switch (pieceMoved) {
+  case W_KING:
+    castlingRights.whiteKingside = false;
+    castlingRights.whiteQueenside = false;
+    break;
+  case B_KING:
+    castlingRights.blackKingside = false;
+    castlingRights.blackQueenside = false;
+    break;
+
+  case W_ROOK:
+    if (move.from.file == 0 && move.from.rank == 7) castlingRights.whiteQueenside = false;
+    if (move.from.file == 7 && move.from.rank == 7) castlingRights.whiteKingside = false;
+    break;
+  case B_ROOK:
+    if (move.from.file == 0 && move.from.rank == 0) castlingRights.blackQueenside = false;
+    if (move.from.file == 7 && move.from.rank == 0) castlingRights.blackKingside = false;
+    break;
+  
+  default:
+    break;
+  }
+}
+
+void Board::moveCastleRook(const Move& move) {
+  Piece rook = getPieceColor(move.movedPiece) == WHITE ? W_ROOK : B_ROOK;
+  if (move.flag == CASTLE_KINGSIDE) {
+    board[7][move.to.rank] = EMPTY;
+    board[5][move.to.rank] = rook;
+  } 
+  if (move.flag == CASTLE_QUEENSIDE) {
+    board[0][move.to.rank] = EMPTY;
+    board[3][move.to.rank] = rook;
+  }
+}
+
+void Board::undoCastleRook(const Move& move) {
+  Piece rook = getPieceColor(move.movedPiece) == WHITE ? W_ROOK : B_ROOK;
+  if (move.flag == CASTLE_KINGSIDE) {
+    board[7][move.to.rank] = rook;
+    board[5][move.to.rank] = EMPTY;
+  } 
+  if (move.flag == CASTLE_QUEENSIDE) {
+    board[0][move.to.rank] = rook;
+    board[3][move.to.rank] = EMPTY;
+  }
 }
 
 Position Board::findKing(Color color) const {
   return color == WHITE ? wKingPos : bKingPos;
 }
 
-bool Board::isKingAttacked(Position kingPos) const {
-  Piece king = getPiece(kingPos);
-  Color kingColor = getPieceColor(king);
-
+bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
   // PAWNS
-  int direction = kingColor == WHITE ? -1 : 1;
+  int direction = defenderColor == WHITE ? -1 : 1;
   static const int captureOffests[2] = {-1, 1};
 
   for (const auto& offset : captureOffests) {
-    int targetFile = kingPos.file + offset;
-    int targetRank = kingPos.rank + direction;
+    int targetFile = pos.file + offset;
+    int targetRank = pos.rank + direction;
 
     if (!isInside(targetFile, targetRank)) continue;
 
     Piece target = getPiece({targetFile, targetRank});
-    Piece enemyPawn = kingColor == WHITE ? B_PAWN : W_PAWN;
+    Piece enemyPawn = defenderColor == WHITE ? B_PAWN : W_PAWN;
 
     if (target == enemyPawn) return true;
   }
@@ -153,13 +211,13 @@ bool Board::isKingAttacked(Position kingPos) const {
   };
 
   for (const auto& jump : jumps) {
-    int targetFile = kingPos.file + jump[0];
-    int targetRank = kingPos.rank + jump[1];
+    int targetFile = pos.file + jump[0];
+    int targetRank = pos.rank + jump[1];
 
     if (!isInside(targetFile, targetRank)) continue;
 
     Piece target = getPiece({targetFile, targetRank});
-    Piece enemyKnight = kingColor == WHITE ? B_KNIGHT : W_KNIGHT;
+    Piece enemyKnight = defenderColor == WHITE ? B_KNIGHT : W_KNIGHT;
 
     if (target == enemyKnight) return true;
   }
@@ -177,8 +235,8 @@ bool Board::isKingAttacked(Position kingPos) const {
   };
 
   for (const auto& direction : directions) {
-    int currentFile = kingPos.file + direction[0];
-    int currentRank = kingPos.rank + direction[1];
+    int currentFile = pos.file + direction[0];
+    int currentRank = pos.rank + direction[1];
 
     while (isInside(currentFile, currentRank)) {
       Piece target = getPiece({currentFile, currentRank});
@@ -189,26 +247,26 @@ bool Board::isKingAttacked(Position kingPos) const {
         continue;
       }
 
-      if (getPieceColor(target) == kingColor) break;
+      if (getPieceColor(target) == defenderColor) break;
 
       bool diagonal = std::abs(direction[0]) == std::abs(direction[1]);
-      bool adjacent = std::max(std::abs(currentFile - kingPos.file), std::abs(currentRank - kingPos.rank)) == 1;
+      bool adjacent = std::max(std::abs(currentFile - pos.file), std::abs(currentRank - pos.rank)) == 1;
 
       if (adjacent) {
-        Piece enemyKing = kingColor == WHITE ? B_KING : W_KING;
+        Piece enemyKing = defenderColor == WHITE ? B_KING : W_KING;
 
         if (target == enemyKing) return true;
       }
 
       if (diagonal) {
-        Piece enemyBishop = kingColor == WHITE ? B_BISHOP : W_BISHOP;
-        Piece enemyQueen = kingColor == WHITE ? B_QUEEN : W_QUEEN;
+        Piece enemyBishop = defenderColor == WHITE ? B_BISHOP : W_BISHOP;
+        Piece enemyQueen = defenderColor == WHITE ? B_QUEEN : W_QUEEN;
 
         if (target == enemyBishop || target == enemyQueen) return true;
 
       } else {
-        Piece enemyRook = kingColor == WHITE ? B_ROOK : W_ROOK;
-        Piece enemyQueen = kingColor == WHITE ? B_QUEEN : W_QUEEN;
+        Piece enemyRook = defenderColor == WHITE ? B_ROOK : W_ROOK;
+        Piece enemyQueen = defenderColor == WHITE ? B_QUEEN : W_QUEEN;
 
         if (target == enemyRook || target == enemyQueen) return true;
       }

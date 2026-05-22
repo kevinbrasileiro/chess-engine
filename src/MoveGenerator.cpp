@@ -1,3 +1,4 @@
+#include <iostream>
 #include "MoveGenerator.hpp"
 
 std::vector<Move> MoveGenerator::generateMoves(Board& board, Position pos) {
@@ -9,7 +10,7 @@ std::vector<Move> MoveGenerator::generateMoves(Board& board, Position pos) {
     board.makeMove(move);
     Position kingPos = board.findKing(movingSide);
 
-    if (!board.isKingAttacked(kingPos)) {
+    if (!board.isSquareAttacked(kingPos, movingSide)) {
       legalMoves.push_back(move);
     }
 
@@ -243,4 +244,41 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
       moves.push_back({pos, {currentFile, currentRank}, piece, target});
     }
   }
+
+  if (piece == W_KING && pos.file == 4 && pos.rank == 7) {
+    if (board.castlingRights.whiteKingside) {
+      bool isPathEmpty = board.getPiece({5, 7}) == EMPTY && board.getPiece({6, 7}) == EMPTY;
+      bool isPathSafe = !board.isSquareAttacked({4, 7}, WHITE) && !board.isSquareAttacked({5, 7}, WHITE) && !board.isSquareAttacked({6, 7}, WHITE);
+      bool isRookThere = board.getPiece({7, 7}) == W_ROOK;
+
+      if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {6, 7}, piece, EMPTY, CASTLE_KINGSIDE}); 
+    }
+
+    if (board.castlingRights.whiteQueenside) {
+      bool isPathEmpty = board.getPiece({1, 7}) == EMPTY && board.getPiece({2, 7}) == EMPTY && board.getPiece({3, 7}) == EMPTY;
+      bool isPathSafe = !board.isSquareAttacked({2, 7}, WHITE) && !board.isSquareAttacked({3, 7}, WHITE) && !board.isSquareAttacked({4, 7}, WHITE);
+      bool isRookThere = board.getPiece({0, 7}) == W_ROOK;
+
+      if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {2, 7}, piece, EMPTY, CASTLE_QUEENSIDE}); 
+    }
+  }
+
+  if (piece == B_KING && pos.file == 4 && pos.rank == 0) {
+    if (board.castlingRights.blackKingside) {
+      bool isPathEmpty = board.getPiece({5, 0}) == EMPTY && board.getPiece({6, 0}) == EMPTY;
+      bool isPathSafe = !board.isSquareAttacked({4, 0}, BLACK) && !board.isSquareAttacked({5, 0}, BLACK) && !board.isSquareAttacked({6, 0}, BLACK);
+      bool isRookThere = board.getPiece({7, 0}) == B_ROOK;
+
+      if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {6, 0}, piece, EMPTY, CASTLE_KINGSIDE}); 
+    }
+
+    if (board.castlingRights.blackQueenside) {
+      bool isPathEmpty = board.getPiece({1, 0}) == EMPTY && board.getPiece({2, 0}) == EMPTY && board.getPiece({3, 0}) == EMPTY;
+      bool isPathSafe = !board.isSquareAttacked({2, 0}, BLACK) && !board.isSquareAttacked({3, 0}, BLACK) && !board.isSquareAttacked({4, 0}, BLACK);
+      bool isRookThere = board.getPiece({0, 0}) == B_ROOK;
+
+      if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {2, 0}, piece, EMPTY, CASTLE_QUEENSIDE}); 
+    }
+  }
+  
 }
