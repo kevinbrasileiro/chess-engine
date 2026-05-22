@@ -42,6 +42,8 @@ int main() {
       if (event.type != sf::Event::MouseButtonPressed || event.mouseButton.button != sf::Mouse::Left) continue;
 
       Position clickedPos = {event.mouseButton.x / TILE_SIZE, event.mouseButton.y / TILE_SIZE};
+      Piece clickedPiece = board.getPiece(clickedPos);
+      Color clickedPieceColor = board.getPieceColor(clickedPiece);
 
       if (selected) {
         auto moves = MoveGenerator::generateMoves(board, selectedPos);
@@ -59,15 +61,15 @@ int main() {
           } 
         }
 
-        if (moved || board.getPiece(clickedPos) == EMPTY) {
+        if (moved || clickedPiece == EMPTY) {
           selected = false;
           selectedPos = {-1, -1};
-        } else {
+        } else if (clickedPieceColor == board.getTurn()) {
           selected = true;
           selectedPos = clickedPos;
         }
 
-      } else if (board.getPiece(clickedPos) != EMPTY) {
+      } else if (clickedPiece != EMPTY && clickedPieceColor == board.getTurn()) {
         selected = true;
         selectedPos = clickedPos;
       }

@@ -87,11 +87,11 @@ void Board::undoMove(const Move& move) {
   turn = getTurn() == WHITE ? BLACK : WHITE;
 }
 
-Position Board::findKing(Color color) {
+Position Board::findKing(Color color) const {
   return color == WHITE ? wKingPos : bKingPos;
 }
 
-bool Board::isKingAttacked(Position kingPos) {
+bool Board::isKingAttacked(Position kingPos) const {
   Piece king = getPiece(kingPos);
   Color kingColor = getPieceColor(king);
 

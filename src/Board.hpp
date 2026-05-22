@@ -16,8 +16,8 @@ public:
   void makeMove(const Move& move);
   void undoMove(const Move& move);
 
-  Position findKing(Color color);
-  bool isKingAttacked(Position pos);
+  Position findKing(Color color) const;
+  bool isKingAttacked(Position pos) const;
   
 private:
   Piece board[8][8];
