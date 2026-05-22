@@ -171,6 +171,11 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
 
   int direction = isWhite ? -1 : 1;
   int startRank = isWhite ? 6 : 1;
+  int promotionRank = isWhite ? 1 : 6;
+
+  int enPassantFile = board.enPassantFile;
+  int enPassantRank = isWhite ? 2 : 5;
+
   static const int captureOffsets[2] = {-1, 1};
 
   int forwardRank = pos.rank + direction;
@@ -178,7 +183,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
   if (forwardRank < 0 || forwardRank > 7) return;
 
   if (board.getPiece({pos.file, forwardRank}) == EMPTY) {
-    moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY });
+    moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, pos.rank == promotionRank ? PROMOTION : NORMAL});
 
     if (pos.rank == startRank) {
       int doubleForwardRank = pos.rank + 2 * direction;
@@ -196,10 +201,16 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
     if (!board.isInside(targetFile, targetRank)) continue;
 
     Piece capturablePiece = board.getPiece({targetFile, targetRank});
-    if (capturablePiece == EMPTY) continue;
+
+    if (capturablePiece == EMPTY) {
+      if (targetFile == enPassantFile && targetRank == enPassantRank) {
+        moves.push_back({pos, {pos.file + offset, pos.rank + direction}, piece, isWhite ? B_PAWN : W_PAWN, EN_PASSANT});
+      }
+      continue;
+    }
 
     if (board.getPieceColor(piece) != board.getPieceColor(capturablePiece)) {
-      moves.push_back({pos, {pos.file + offset, pos.rank + direction}, piece, capturablePiece});
+      moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, pos.rank == promotionRank ? PROMOTION : NORMAL});
     }
   }
 }

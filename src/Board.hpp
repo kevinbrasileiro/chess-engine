@@ -3,6 +3,8 @@
 #include "Types.hpp"
 #include "Move.hpp"
 
+#include <vector>
+
 class Board {
 public:
   Board();
@@ -18,6 +20,9 @@ public:
 
   Position findKing(Color color) const;
   bool isKingAttacked(Position pos) const;
+
+  int enPassantFile = -1;
+  std::vector<int> enPassantHistory;
   
 private:
   Piece board[8][8];

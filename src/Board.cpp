@@ -60,29 +60,58 @@ Color Board::getTurn() const {
 }
 
 void Board::makeMove(const Move& move) {
-  if (move.movedPiece == W_KING) {
-    wKingPos = move.to;
-  } 
-  if (move.movedPiece == B_KING) {
-    bKingPos = move.to;
+  if (move.movedPiece == W_KING) wKingPos = move.to;
+  if (move.movedPiece == B_KING) bKingPos = move.to;
+
+  Piece pieceToPlace = move.movedPiece;
+  bool isWhite = getPieceColor(pieceToPlace) == WHITE;
+
+  if (move.flag == PROMOTION) {
+    pieceToPlace = isWhite ? W_QUEEN : B_QUEEN;
   }
 
-  board[move.to.file][move.to.rank] = move.movedPiece;
+  enPassantHistory.push_back(enPassantFile);
+  enPassantFile = -1;
+  if (pieceToPlace == W_PAWN || pieceToPlace == B_PAWN) {
+    bool doubleMove = std::abs(move.from.rank - move.to.rank) == 2;
+    if (doubleMove) enPassantFile = move.from.file;
+  }
+
+  if (move.flag == EN_PASSANT) {
+    int direction = isWhite ? 1 : -1;
+
+    board[move.to.file][move.to.rank + direction] = EMPTY;
+  }
+
+  board[move.to.file][move.to.rank] = pieceToPlace;
   board[move.from.file][move.from.rank] = EMPTY;
 
   turn = getTurn() == WHITE ? BLACK : WHITE;
 }
 
 void Board::undoMove(const Move& move) {
-  if (move.movedPiece == W_KING) {
-    wKingPos = move.from;
-  } 
-  if (move.movedPiece == B_KING) {
-    bKingPos = move.from;
+  if (move.movedPiece == W_KING) wKingPos = move.from;
+  if (move.movedPiece == B_KING) bKingPos = move.from;
+
+  Piece pieceToPlace = move.movedPiece;
+  bool isWhite = getPieceColor(pieceToPlace);
+
+  if (move.flag == PROMOTION) {
+    pieceToPlace = isWhite ? W_PAWN : B_PAWN;
   }
 
-  board[move.from.file][move.from.rank] = move.movedPiece;
-  board[move.to.file][move.to.rank] = move.capturedPiece;
+  enPassantFile = enPassantHistory.back();
+  enPassantHistory.pop_back();
+  if (move.flag == EN_PASSANT) {
+    int direction = isWhite ? 1 : -1;
+
+    board[move.to.file][move.to.rank] = EMPTY;
+    board[move.to.file][move.to.rank + direction] = move.capturedPiece;
+  } else {
+    board[move.to.file][move.to.rank] = move.capturedPiece;
+  }
+  
+  board[move.from.file][move.from.rank] = pieceToPlace;
 
   turn = getTurn() == WHITE ? BLACK : WHITE;
 }
