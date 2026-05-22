@@ -10,6 +10,7 @@ add_executable(ChessEngine
     src/main.cpp
     src/Board.cpp
     src/MoveGenerator.cpp
+    src/Perft.cpp
 )
 
 target_link_libraries(ChessEngine

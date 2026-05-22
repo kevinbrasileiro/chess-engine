@@ -1,15 +1,31 @@
 #include <iostream>
+#include <chrono>
 #include <SFML/Graphics.hpp>
 #include "Board.hpp"
 #include "MoveGenerator.hpp"
+#include "Perft.hpp"
 
 const int TILE_SIZE = 100;
 const int BOARD_SIZE = 8;
 
-int main() {
+int main(int argc, char* argv[]) {
   sf::RenderWindow window(sf::VideoMode(TILE_SIZE * BOARD_SIZE, TILE_SIZE * BOARD_SIZE), "Chess");
 
   Board board;
+
+  if (argc == 3 && std::string(argv[1]) == "--perft") {
+    int depth = std::stoi(argv[2]);
+
+    auto start = std::chrono::steady_clock::now();
+    perft(board, depth, true);
+    auto end = std::chrono::steady_clock::now();
+
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Took: " << duration.count() << "ms" << std::endl;
+
+    return 0;
+  }
 
   bool selected = false;
   Position selectedPos = {-1, -1};
