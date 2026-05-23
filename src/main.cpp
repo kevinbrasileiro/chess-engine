@@ -1,9 +1,10 @@
 #include <iostream>
 #include <chrono>
 #include <SFML/Graphics.hpp>
-#include "Board.hpp"
-#include "MoveGenerator.hpp"
-#include "Perft.hpp"
+#include "core/Board.hpp"
+#include "core/MoveGenerator.hpp"
+#include "core/Perft.hpp"
+#include "core/GameController.hpp"
 
 const int TILE_SIZE = 100;
 const int BOARD_SIZE = 8;
@@ -12,6 +13,7 @@ int main(int argc, char* argv[]) {
   sf::RenderWindow window(sf::VideoMode(TILE_SIZE * BOARD_SIZE, TILE_SIZE * BOARD_SIZE), "Chess");
 
   Board board;
+  GameController controller(board);
 
   if (argc == 3 && std::string(argv[1]) == "--perft") {
     int depth = std::stoi(argv[2]);
@@ -27,8 +29,11 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  bool selected = false;
-  Position selectedPos = {-1, -1};
+  if (argc == 3 && std::string(argv[1]) == "--bot") {
+    std::string side = argv[2];
+
+    controller.enableBot(side == "white" ? WHITE : BLACK);
+  }
 
   std::map<Piece, sf::Texture> textures;
 
@@ -58,37 +63,7 @@ int main(int argc, char* argv[]) {
       if (event.type != sf::Event::MouseButtonPressed || event.mouseButton.button != sf::Mouse::Left) continue;
 
       Position clickedPos = {event.mouseButton.x / TILE_SIZE, event.mouseButton.y / TILE_SIZE};
-      Piece clickedPiece = board.getPiece(clickedPos);
-      Color clickedPieceColor = board.getPieceColor(clickedPiece);
-
-      if (selected) {
-        auto moves = MoveGenerator::generateMoves(board, selectedPos);
-        bool moved = false;
-
-        for (const auto& move : moves) {
-          if (move.to.file == clickedPos.file && move.to.rank == clickedPos.rank) {
-            board.makeMove(move);
-            moved = true;
-
-            selected = false;
-            selectedPos = {-1, -1};
-
-            break;
-          } 
-        }
-
-        if (moved || clickedPiece == EMPTY) {
-          selected = false;
-          selectedPos = {-1, -1};
-        } else if (clickedPieceColor == board.getTurn()) {
-          selected = true;
-          selectedPos = clickedPos;
-        }
-
-      } else if (clickedPiece != EMPTY && clickedPieceColor == board.getTurn()) {
-        selected = true;
-        selectedPos = clickedPos;
-      }
+      controller.handleClick(clickedPos);
     }
 
     window.clear();
@@ -105,7 +80,7 @@ int main(int argc, char* argv[]) {
           square.setFillColor(sf::Color(181, 136, 99));
         }
 
-        if (file == selectedPos.file && rank == selectedPos.rank) {
+        if (controller.isSelected({file, rank})) {
           square.setFillColor(sf::Color(240, 238, 132));
         }
 
@@ -113,9 +88,7 @@ int main(int argc, char* argv[]) {
 
         Piece piece = board.getPiece({file, rank});
 
-        if (piece == EMPTY) {
-          continue;
-        }
+        if (piece == EMPTY) continue;
 
         sf::Sprite sprite;
 
