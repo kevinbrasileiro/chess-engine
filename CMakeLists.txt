@@ -19,3 +19,8 @@ target_link_libraries(ChessEngine
     sfml-window
     sfml-system
 )
+
+target_compile_options(ChessEngine PRIVATE 
+    $<$<CONFIG:Release>:-march=native> 
+    $<$<CONFIG:RelWithDebInfo>:-O2>
+)

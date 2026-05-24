@@ -25,7 +25,7 @@ U64 perft(Board& board, int depth, bool root) {
     for (int file = 0; file < 8; ++file) {
 
       Position pos{file, rank};
-      Piece piece = board.getPiece(pos);
+      Piece piece = board.getPiece(pos.file, pos.rank);
 
       if (piece == EMPTY) continue;
 

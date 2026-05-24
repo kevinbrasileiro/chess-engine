@@ -8,7 +8,7 @@ GameController::GameController(Board& board): board(board) {}
 void GameController::handleClick(Position clickedPos) {
   if (botEnabled && board.getTurn() == botColor) return;
 
-  Piece clickedPiece = board.getPiece(clickedPos);
+  Piece clickedPiece = board.getPiece(clickedPos.file, clickedPos.rank);
   Color clickedPieceColor = board.getPieceColor(clickedPiece);
 
   if (selected) {
@@ -59,7 +59,7 @@ void GameController::makeBotMove() {
   for (int file = 0; file < 8; file++) {
     for (int rank = 0; rank < 8; rank++) {
       Position pos = {file, rank};
-      Piece piece = board.getPiece(pos);
+      Piece piece = board.getPiece(pos.file, pos.rank);
 
       if (piece == EMPTY) continue;
       if (board.getPieceColor(piece) != botColor) continue;

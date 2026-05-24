@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 
         window.draw(square);
 
-        Piece piece = board.getPiece({file, rank});
+        Piece piece = board.getPiece(file, rank);
 
         if (piece == EMPTY) continue;
 

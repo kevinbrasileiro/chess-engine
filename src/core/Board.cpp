@@ -88,23 +88,6 @@ void Board::setupBoard(const std::string& fen) {
   }
 }
 
-bool Board::isInside(int file, int rank) const {
-  return file >= 0 && file <= 7 && rank >= 0 && rank <= 7;
-}
-
-Piece Board::getPiece(Position pos) const {
-  return board[pos.file][pos.rank];
-}
-
-Color Board::getPieceColor(Piece p) const {
-  if (p == EMPTY) return NO_COLOR;
-  return p <= W_KING ? WHITE : BLACK;
-}
-
-Color Board::getTurn() const {
-  return turn;
-}
-
 void Board::makeMove(const Move& move) {
   if (move.movedPiece == W_KING) wKingPos = move.to;
   if (move.movedPiece == B_KING) bKingPos = move.to;
@@ -261,7 +244,7 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
 
     if (!isInside(targetFile, targetRank)) continue;
 
-    Piece target = getPiece({targetFile, targetRank});
+    Piece target = getPiece(targetFile, targetRank);
     Piece enemyPawn = defenderColor == WHITE ? B_PAWN : W_PAWN;
 
     if (target == enemyPawn) return true;
@@ -285,7 +268,7 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
 
     if (!isInside(targetFile, targetRank)) continue;
 
-    Piece target = getPiece({targetFile, targetRank});
+    Piece target = getPiece(targetFile, targetRank);
     Piece enemyKnight = defenderColor == WHITE ? B_KNIGHT : W_KNIGHT;
 
     if (target == enemyKnight) return true;
@@ -308,7 +291,7 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
     int currentRank = pos.rank + direction[1];
 
     while (isInside(currentFile, currentRank)) {
-      Piece target = getPiece({currentFile, currentRank});
+      Piece target = getPiece(currentFile, currentRank);
       
       if (target == EMPTY) {
         currentFile += direction[0];

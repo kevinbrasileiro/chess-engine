@@ -22,7 +22,7 @@ std::vector<Move> MoveGenerator::generateMoves(Board& board, Position pos) {
 
 std::vector<Move> MoveGenerator::generatePseudoLegalMoves(const Board& board, Position pos) {
   std::vector<Move> moves = {};
-  Piece piece = board.getPiece(pos);
+  Piece piece = board.getPiece(pos.file, pos.rank);
 
   switch (piece) {
     case W_PAWN:
@@ -75,7 +75,7 @@ void MoveGenerator::generateKnightMoves(const Board& board, Position pos, std::v
     {-1, -2}
   };
 
-  Piece piece = board.getPiece(pos);
+  Piece piece = board.getPiece(pos.file, pos.rank);
 
   for (const auto& jump : jumps) {
     int targetFile = pos.file + jump[0];
@@ -83,7 +83,7 @@ void MoveGenerator::generateKnightMoves(const Board& board, Position pos, std::v
 
     if (!board.isInside(targetFile, targetRank)) continue;
 
-    Piece target = board.getPiece({targetFile, targetRank});
+    Piece target = board.getPiece(targetFile, targetRank);
 
     if (target == EMPTY) {
       moves.push_back({pos, {targetFile, targetRank}, piece, target});
@@ -105,14 +105,14 @@ void MoveGenerator::generateBishopMoves(const Board& board, Position pos, std::v
     {1, 1},
   };
 
-  Piece piece = board.getPiece(pos);
+  Piece piece = board.getPiece(pos.file, pos.rank);
 
   for (const auto& direction : directions) {
     int currentFile = pos.file + direction[0];
     int currentRank = pos.rank + direction[1];
 
     while (board.isInside(currentFile, currentRank)) {
-      Piece target = board.getPiece({currentFile, currentRank});
+      Piece target = board.getPiece(currentFile, currentRank);
 
       if (target == EMPTY) {
         moves.push_back({pos, {currentFile, currentRank}, piece, target});
@@ -139,14 +139,14 @@ void MoveGenerator::generateRookMoves(const Board& board, Position pos, std::vec
     {-1, 0},
   };
 
-  Piece piece = board.getPiece(pos);
+  Piece piece = board.getPiece(pos.file, pos.rank);
 
   for (const auto& direction : directions) {
     int currentFile = pos.file + direction[0];
     int currentRank = pos.rank + direction[1];
 
     while (board.isInside(currentFile, currentRank)) {
-      Piece target = board.getPiece({currentFile, currentRank});
+      Piece target = board.getPiece(currentFile, currentRank);
 
       if (target == EMPTY) {
         moves.push_back({pos, {currentFile, currentRank}, piece, target});
@@ -166,7 +166,7 @@ void MoveGenerator::generateRookMoves(const Board& board, Position pos, std::vec
 }
 
 void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vector<Move>& moves) {
-  Piece piece = board.getPiece(pos);
+  Piece piece = board.getPiece(pos.file, pos.rank);
 
   bool isWhite = board.getPieceColor(piece) == WHITE;
 
@@ -183,7 +183,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
 
   if (forwardRank < 0 || forwardRank > 7) return;
 
-  if (board.getPiece({pos.file, forwardRank}) == EMPTY) {
+  if (board.getPiece(pos.file, forwardRank) == EMPTY) {
     if (pos.rank == promotionRank) {
       moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_QUEEN});
       moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_ROOK});
@@ -196,7 +196,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
     if (pos.rank == startRank) {
       int doubleForwardRank = pos.rank + 2 * direction;
 
-      if (board.getPiece({pos.file, doubleForwardRank}) == EMPTY) {
+      if (board.getPiece(pos.file, doubleForwardRank) == EMPTY) {
         moves.push_back({pos, {pos.file, doubleForwardRank}, piece, EMPTY});
       }
     }
@@ -208,7 +208,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
 
     if (!board.isInside(targetFile, targetRank)) continue;
 
-    Piece capturablePiece = board.getPiece({targetFile, targetRank});
+    Piece capturablePiece = board.getPiece(targetFile, targetRank);
 
     if (capturablePiece == EMPTY) {
       if (targetFile == enPassantFile && targetRank == enPassantRank) {
@@ -242,7 +242,7 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
     {0, 1},
   };
 
-  Piece piece = board.getPiece(pos);
+  Piece piece = board.getPiece(pos.file, pos.rank);
 
   for (const auto& direction : directions) {
     int currentFile = pos.file + direction[0];
@@ -250,7 +250,7 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
 
     if (!board.isInside(currentFile, currentRank)) continue;
 
-    Piece target = board.getPiece({currentFile, currentRank});
+    Piece target = board.getPiece(currentFile, currentRank);
 
     if (target == EMPTY) {
       moves.push_back({pos, {currentFile, currentRank}, piece, target});
@@ -261,17 +261,17 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
 
   if (piece == W_KING && pos.file == 4 && pos.rank == 7) {
     if (board.castlingRights.whiteKingside) {
-      bool isPathEmpty = board.getPiece({5, 7}) == EMPTY && board.getPiece({6, 7}) == EMPTY;
+      bool isPathEmpty = board.getPiece(5, 7) == EMPTY && board.getPiece(6, 7) == EMPTY;
       bool isPathSafe = !board.isSquareAttacked({4, 7}, WHITE) && !board.isSquareAttacked({5, 7}, WHITE) && !board.isSquareAttacked({6, 7}, WHITE);
-      bool isRookThere = board.getPiece({7, 7}) == W_ROOK;
+      bool isRookThere = board.getPiece(7, 7) == W_ROOK;
 
       if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {6, 7}, piece, EMPTY, CASTLE_KINGSIDE}); 
     }
 
     if (board.castlingRights.whiteQueenside) {
-      bool isPathEmpty = board.getPiece({1, 7}) == EMPTY && board.getPiece({2, 7}) == EMPTY && board.getPiece({3, 7}) == EMPTY;
+      bool isPathEmpty = board.getPiece(1, 7) == EMPTY && board.getPiece(2, 7) == EMPTY && board.getPiece(3, 7) == EMPTY;
       bool isPathSafe = !board.isSquareAttacked({2, 7}, WHITE) && !board.isSquareAttacked({3, 7}, WHITE) && !board.isSquareAttacked({4, 7}, WHITE);
-      bool isRookThere = board.getPiece({0, 7}) == W_ROOK;
+      bool isRookThere = board.getPiece(0, 7) == W_ROOK;
 
       if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {2, 7}, piece, EMPTY, CASTLE_QUEENSIDE}); 
     }
@@ -279,17 +279,17 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
 
   if (piece == B_KING && pos.file == 4 && pos.rank == 0) {
     if (board.castlingRights.blackKingside) {
-      bool isPathEmpty = board.getPiece({5, 0}) == EMPTY && board.getPiece({6, 0}) == EMPTY;
+      bool isPathEmpty = board.getPiece(5, 0) == EMPTY && board.getPiece(6, 0) == EMPTY;
       bool isPathSafe = !board.isSquareAttacked({4, 0}, BLACK) && !board.isSquareAttacked({5, 0}, BLACK) && !board.isSquareAttacked({6, 0}, BLACK);
-      bool isRookThere = board.getPiece({7, 0}) == B_ROOK;
+      bool isRookThere = board.getPiece(7, 0) == B_ROOK;
 
       if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {6, 0}, piece, EMPTY, CASTLE_KINGSIDE}); 
     }
 
     if (board.castlingRights.blackQueenside) {
-      bool isPathEmpty = board.getPiece({1, 0}) == EMPTY && board.getPiece({2, 0}) == EMPTY && board.getPiece({3, 0}) == EMPTY;
+      bool isPathEmpty = board.getPiece(1, 0) == EMPTY && board.getPiece(2, 0) == EMPTY && board.getPiece(3, 0) == EMPTY;
       bool isPathSafe = !board.isSquareAttacked({2, 0}, BLACK) && !board.isSquareAttacked({3, 0}, BLACK) && !board.isSquareAttacked({4, 0}, BLACK);
-      bool isRookThere = board.getPiece({0, 0}) == B_ROOK;
+      bool isRookThere = board.getPiece(0, 0) == B_ROOK;
 
       if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {2, 0}, piece, EMPTY, CASTLE_QUEENSIDE}); 
     }

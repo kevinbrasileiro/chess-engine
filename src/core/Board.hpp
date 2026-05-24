@@ -13,11 +13,20 @@ class Board {
 public:
   Board();
 
-  bool isInside(int file, int rank) const;
+  inline bool isInside(int file, int rank) const {
+    return file >= 0 && file <= 7 && rank >= 0 && rank <= 7;
+  };
 
-  Piece getPiece(Position pos) const;
-  Color getPieceColor(Piece piece) const;
-  Color getTurn() const;
+  inline Piece getPiece(int file, int rank) const {
+    return board[file][rank];
+  }
+  inline Color getPieceColor(Piece piece) const {
+    if (piece == EMPTY) return NO_COLOR;
+    return piece <= W_KING ? WHITE : BLACK;
+  }
+  inline Color getTurn() const {
+    return turn;
+  };
 
   void makeMove(const Move& move);
   void undoMove(const Move& move);
