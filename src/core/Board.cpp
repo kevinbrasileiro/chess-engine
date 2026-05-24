@@ -234,6 +234,13 @@ Position Board::findKing(Color color) const {
 }
 
 bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
+  Piece enemyPawn = defenderColor == WHITE ? B_PAWN : W_PAWN;
+  Piece enemyKnight = defenderColor == WHITE ? B_KNIGHT : W_KNIGHT;
+  Piece enemyBishop = defenderColor == WHITE ? B_BISHOP : W_BISHOP;
+  Piece enemyRook = defenderColor == WHITE ? B_ROOK : W_ROOK;
+  Piece enemyQueen = defenderColor == WHITE ? B_QUEEN : W_QUEEN;
+  Piece enemyKing = defenderColor == WHITE ? B_KING : W_KING;
+
   // PAWNS
   int direction = defenderColor == WHITE ? -1 : 1;
   static const int captureOffests[2] = {-1, 1};
@@ -245,9 +252,8 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
     if (!isInside(targetFile, targetRank)) continue;
 
     Piece target = getPiece(targetFile, targetRank);
-    Piece enemyPawn = defenderColor == WHITE ? B_PAWN : W_PAWN;
 
-    if (target == enemyPawn) return true;
+    return target == enemyPawn;
   }
   
   // KNIGHT
@@ -269,9 +275,8 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
     if (!isInside(targetFile, targetRank)) continue;
 
     Piece target = getPiece(targetFile, targetRank);
-    Piece enemyKnight = defenderColor == WHITE ? B_KNIGHT : W_KNIGHT;
 
-    if (target == enemyKnight) return true;
+    return target == enemyKnight;
   }
 
   // SLIDING
@@ -304,24 +309,11 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
       bool diagonal = std::abs(direction[0]) == std::abs(direction[1]);
       bool adjacent = std::max(std::abs(currentFile - pos.file), std::abs(currentRank - pos.rank)) == 1;
 
-      if (adjacent) {
-        Piece enemyKing = defenderColor == WHITE ? B_KING : W_KING;
+      return adjacent && target == enemyKing;
 
-        if (target == enemyKing) return true;
-      }
+      return diagonal && (target == enemyBishop || target == enemyQueen);
 
-      if (diagonal) {
-        Piece enemyBishop = defenderColor == WHITE ? B_BISHOP : W_BISHOP;
-        Piece enemyQueen = defenderColor == WHITE ? B_QUEEN : W_QUEEN;
-
-        if (target == enemyBishop || target == enemyQueen) return true;
-
-      } else {
-        Piece enemyRook = defenderColor == WHITE ? B_ROOK : W_ROOK;
-        Piece enemyQueen = defenderColor == WHITE ? B_QUEEN : W_QUEEN;
-
-        if (target == enemyRook || target == enemyQueen) return true;
-      }
+      return (target == enemyRook || target == enemyQueen);
 
       break;
     }
