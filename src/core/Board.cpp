@@ -92,25 +92,8 @@ void Board::makeMove(const Move& move) {
   if (move.movedPiece == W_KING) wKingPos = move.to;
   if (move.movedPiece == B_KING) bKingPos = move.to;
 
-  Piece pieceToPlace = move.movedPiece;
+  Piece pieceToPlace = move.flag == PROMOTION ? move.promotedPiece : move.movedPiece;
   bool isWhite = getPieceColor(pieceToPlace) == WHITE;
-
-  switch (move.flag) {
-  case PROMOTION_QUEEN:
-    pieceToPlace = isWhite ? W_QUEEN : B_QUEEN;
-    break;
-  case PROMOTION_ROOK:
-    pieceToPlace = isWhite ? W_ROOK : B_ROOK;
-    break;
-  case PROMOTION_BISHOP:
-    pieceToPlace = isWhite ? W_BISHOP : B_BISHOP;
-    break;
-  case PROMOTION_KNIGHT:
-    pieceToPlace = isWhite ? W_KNIGHT : B_KNIGHT;
-    break;
-  default:
-    break;
-  }
 
   moveCastleRook(move);
 
@@ -143,7 +126,7 @@ void Board::undoMove(const Move& move) {
   Piece pieceToPlace = move.movedPiece;
   bool isWhite = getPieceColor(pieceToPlace) == WHITE;
 
-  if (move.flag >= PROMOTION_QUEEN) {
+  if (move.flag == PROMOTION) {
     pieceToPlace = isWhite ? W_PAWN : B_PAWN;
   }
 
@@ -169,9 +152,7 @@ void Board::undoMove(const Move& move) {
 }
 
 void Board::updateCastlingRights(const Move& move) {
-  Piece pieceMoved = move.movedPiece;
-
-  switch (pieceMoved) {
+  switch (move.movedPiece) {
   case W_KING:
     castlingRights.whiteKingside = false;
     castlingRights.whiteQueenside = false;
@@ -295,27 +276,25 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
     int currentFile = pos.file + direction[0];
     int currentRank = pos.rank + direction[1];
 
+    bool diagonal = direction[0] != 0 && direction[1] != 0;
+    bool adjacent = true;
+
     while (isInside(currentFile, currentRank)) {
       Piece target = getPiece(currentFile, currentRank);
       
       if (target == EMPTY) {
         currentFile += direction[0];
         currentRank += direction[1];
+        adjacent = false;
         continue;
       }
 
       if (getPieceColor(target) == defenderColor) break;
 
-      bool diagonal = std::abs(direction[0]) == std::abs(direction[1]);
-      bool adjacent = std::max(std::abs(currentFile - pos.file), std::abs(currentRank - pos.rank)) == 1;
-
       if (adjacent && target == enemyKing) return true;
 
-      if (diagonal) {
-        if (target == enemyBishop || target == enemyQueen) return true;
-      } else {
-        if (target == enemyRook || target == enemyQueen) return true;
-      }
+      if (diagonal && (target == enemyBishop || target == enemyQueen)) return true;
+      if (!diagonal && (target == enemyRook || target == enemyQueen)) return true;
 
       break;
     }

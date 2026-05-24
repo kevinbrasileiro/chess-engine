@@ -114,16 +114,13 @@ void MoveGenerator::generateBishopMoves(const Board& board, Position pos, std::v
     while (board.isInside(currentFile, currentRank)) {
       Piece target = board.getPiece(currentFile, currentRank);
 
-      if (target == EMPTY) {
-        moves.push_back({pos, {currentFile, currentRank}, piece, target});
-      } else {
-
+      if (target != EMPTY) {
         if (board.getPieceColor(target) != board.getPieceColor(piece)) {
           moves.push_back({pos, {currentFile, currentRank}, piece, target});
         }
-
         break;
       }
+      moves.push_back({pos, {currentFile, currentRank}, piece, target});
 
       currentFile += direction[0];
       currentRank += direction[1];
@@ -148,16 +145,13 @@ void MoveGenerator::generateRookMoves(const Board& board, Position pos, std::vec
     while (board.isInside(currentFile, currentRank)) {
       Piece target = board.getPiece(currentFile, currentRank);
 
-      if (target == EMPTY) {
-        moves.push_back({pos, {currentFile, currentRank}, piece, target});
-      } else {
-
+      if (target != EMPTY) {
         if (board.getPieceColor(target) != board.getPieceColor(piece)) {
           moves.push_back({pos, {currentFile, currentRank}, piece, target});
         }
-
         break;
-      }
+      }          
+      moves.push_back({pos, {currentFile, currentRank}, piece, target});
 
       currentFile += direction[0];
       currentRank += direction[1];
@@ -185,12 +179,12 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
 
   if (board.getPiece(pos.file, forwardRank) == EMPTY) {
     if (pos.rank == promotionRank) {
-      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_QUEEN});
-      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_ROOK});
-      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_BISHOP});
-      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION_KNIGHT});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION, isWhite ? W_QUEEN : B_QUEEN});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION, isWhite ? W_ROOK : B_ROOK});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION, isWhite ? W_BISHOP : B_BISHOP});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION, isWhite ? W_KNIGHT : B_KNIGHT});
     } else {
-        moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY});
+      moves.push_back({pos, {pos.file, forwardRank}, piece, EMPTY});
     }
 
     if (pos.rank == startRank) {
@@ -219,10 +213,10 @@ void MoveGenerator::generatePawnMoves(const Board& board, Position pos, std::vec
 
     if (board.getPieceColor(piece) != board.getPieceColor(capturablePiece)) {
       if (pos.rank == promotionRank) {
-        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_QUEEN});
-        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_ROOK});
-        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_BISHOP});
-        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION_KNIGHT});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION, isWhite ? W_QUEEN : B_QUEEN});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION, isWhite ? W_ROOK : B_ROOK});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION, isWhite ? W_BISHOP : B_BISHOP});
+        moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece, PROMOTION, isWhite ? W_KNIGHT : B_KNIGHT});
       } else {
         moves.push_back({pos, {targetFile, targetRank}, piece, capturablePiece});
       }
@@ -294,5 +288,4 @@ void MoveGenerator::generateKingMoves(const Board& board, Position pos, std::vec
       if (isPathEmpty && isPathSafe && isRookThere) moves.push_back({pos, {2, 0}, piece, EMPTY, CASTLE_QUEENSIDE}); 
     }
   }
-  
 }

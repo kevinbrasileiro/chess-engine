@@ -8,10 +8,7 @@ enum MoveFlag {
     CASTLE_QUEENSIDE,
     EN_PASSANT,
 
-    PROMOTION_QUEEN,
-    PROMOTION_ROOK,
-    PROMOTION_BISHOP,
-    PROMOTION_KNIGHT,
+    PROMOTION,
 };
 
 struct Move {
@@ -22,4 +19,5 @@ struct Move {
     Piece capturedPiece = EMPTY;
 
     MoveFlag flag = NORMAL;
+    Piece promotedPiece = EMPTY;
 };
