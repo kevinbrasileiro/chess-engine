@@ -21,6 +21,8 @@ U64 perft(Board& board, int depth, bool root) {
 
   Color sideToMove = board.getTurn();
 
+  MoveList moves;
+
   for (int rank = 0; rank < 8; ++rank) {
     for (int file = 0; file < 8; ++file) {
 
@@ -31,16 +33,18 @@ U64 perft(Board& board, int depth, bool root) {
 
       if (board.getPieceColor(piece) != sideToMove) continue;
 
-      std::vector<Move> moves = MoveGenerator::generateMoves(board, pos);
+      moves.clear();
+      MoveGenerator::generateMoves(board, pos, moves);
 
-      for (const Move& move : moves) {
-          board.makeMove(move);
-          U64 nodes = perft(board, depth - 1, false);
-          board.undoMove(move);
+      for (int i = 0; i < moves.count; i++) {
+        const Move& move = moves[i];
+        board.makeMove(move);
+        U64 nodes = perft(board, depth - 1, false);
+        board.undoMove(move);
 
-          totalNodes += nodes;
+        totalNodes += nodes;
 
-          if (root) std::cout << moveToString(move) << ": " << nodes << '\n';
+        if (root) std::cout << moveToString(move) << ": " << nodes << '\n';
       }
     }
   }

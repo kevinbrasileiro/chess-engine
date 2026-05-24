@@ -1,17 +1,26 @@
 #pragma once
 
-#include <vector>
-
 #include "Board.hpp"
+#include "MoveList.hpp"
 
 class MoveGenerator {
 public:
-  static std::vector<Move> generateMoves(Board& board, Position pos);
-  static std::vector<Move> generatePseudoLegalMoves(const Board& board, Position pos);
+  static void generateMoves(Board& board, Position pos, MoveList& legalMoves);
+  inline static void tryMove(Board& board, const Move& move, MoveList& legalMoves) {
+    Color side = board.getTurn();
+
+    board.makeMove(move);
+    
+    if (!board.isSquareAttacked(board.findKing(side), side)) {
+      legalMoves.add(move);
+    }
+
+    board.undoMove(move);
+  };
 private:
-  static void generatePawnMoves(const Board& board, Position pos, std::vector<Move>& moves);
-  static void generateKnightMoves(const Board& board, Position pos, std::vector<Move>& moves);
-  static void generateBishopMoves(const Board& board, Position pos, std::vector<Move>& moves);
-  static void generateRookMoves(const Board& board, Position pos, std::vector<Move>& moves);
-  static void generateKingMoves(const Board& board, Position pos, std::vector<Move>& moves);
+  static void generatePawnMoves(Board& board, Position pos, MoveList& moves);
+  static void generateKnightMoves(Board& board, Position pos, MoveList& moves);
+  static void generateBishopMoves(Board& board, Position pos, MoveList& moves);
+  static void generateRookMoves(Board& board, Position pos, MoveList& moves);
+  static void generateKingMoves(Board& board, Position pos, MoveList& moves);
 };

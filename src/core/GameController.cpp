@@ -11,11 +11,14 @@ void GameController::handleClick(Position clickedPos) {
   Piece clickedPiece = board.getPiece(clickedPos.file, clickedPos.rank);
   Color clickedPieceColor = board.getPieceColor(clickedPiece);
 
+  MoveList availableMoves;
+
   if (selected) {
-    auto moves = MoveGenerator::generateMoves(board, selectedPos);
+    MoveGenerator::generateMoves(board, selectedPos, availableMoves);
     bool moved = false;
 
-    for (const auto& move : moves) {
+    for (int i = 0; i < availableMoves.count; i++) {
+      const Move& move = availableMoves[i];
       if (move.to.file == clickedPos.file && move.to.rank == clickedPos.rank) {
         board.makeMove(move);
         moved = true;
@@ -54,7 +57,7 @@ void GameController::enableBot(Color color) {
 }
 
 void GameController::makeBotMove() {
-  std::vector<Move> availableMoves;
+  MoveList availableMoves;
 
   for (int file = 0; file < 8; file++) {
     for (int rank = 0; rank < 8; rank++) {
@@ -64,18 +67,16 @@ void GameController::makeBotMove() {
       if (piece == EMPTY) continue;
       if (board.getPieceColor(piece) != botColor) continue;
       
-      auto moves = MoveGenerator::generateMoves(board, {file, rank});
-
-      availableMoves.insert(availableMoves.end(), moves.begin(), moves.end());
+      MoveGenerator::generateMoves(board, {file, rank}, availableMoves);
     }
   }
 
-  if (availableMoves.empty()) return;
+  if (availableMoves.count == 0) return;
 
   static std::random_device rd;
   static std::mt19937 gen(rd());
 
-  std::uniform_int_distribution<> dist(0, availableMoves.size() - 1);
+  std::uniform_int_distribution<> dist(0, availableMoves.count - 1);
 
   Move randomMove = availableMoves[dist(gen)];
 
