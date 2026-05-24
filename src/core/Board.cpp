@@ -253,7 +253,7 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
 
     Piece target = getPiece(targetFile, targetRank);
 
-    return target == enemyPawn;
+    if (target == enemyPawn) return true;
   }
   
   // KNIGHT
@@ -276,7 +276,7 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
 
     Piece target = getPiece(targetFile, targetRank);
 
-    return target == enemyKnight;
+    if (target == enemyKnight) return true;
   }
 
   // SLIDING
@@ -309,11 +309,13 @@ bool Board::isSquareAttacked(Position pos, Color defenderColor) const {
       bool diagonal = std::abs(direction[0]) == std::abs(direction[1]);
       bool adjacent = std::max(std::abs(currentFile - pos.file), std::abs(currentRank - pos.rank)) == 1;
 
-      return adjacent && target == enemyKing;
+      if (adjacent && target == enemyKing) return true;
 
-      return diagonal && (target == enemyBishop || target == enemyQueen);
-
-      return (target == enemyRook || target == enemyQueen);
+      if (diagonal) {
+        if (target == enemyBishop || target == enemyQueen) return true;
+      } else {
+        if (target == enemyRook || target == enemyQueen) return true;
+      }
 
       break;
     }
