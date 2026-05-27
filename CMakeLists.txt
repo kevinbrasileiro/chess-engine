@@ -12,6 +12,9 @@ add_executable(ChessEngine
     src/core/MoveGenerator.cpp
     src/core/Perft.cpp
     src/core/GameController.cpp
+
+    src/bot/Evaluation.cpp
+    src/bot/Search.cpp
 )
 
 target_link_libraries(ChessEngine

@@ -1,7 +1,9 @@
+#include <iostream>
 #include <random>
 
 #include "GameController.hpp"
 #include "MoveGenerator.hpp"
+#include "../bot/Search.hpp"
 
 GameController::GameController(Board& board): board(board) {}
 
@@ -57,28 +59,39 @@ void GameController::enableBot(Color color) {
 }
 
 void GameController::makeBotMove() {
-  MoveList availableMoves;
+  MoveList moves;
+  moves.clear();
 
   for (int file = 0; file < 8; file++) {
     for (int rank = 0; rank < 8; rank++) {
-      Position pos = {file, rank};
-      Piece piece = board.getPiece(pos.file, pos.rank);
+      Piece piece = board.getPiece(file, rank);
 
       if (piece == EMPTY) continue;
       if (board.getPieceColor(piece) != botColor) continue;
       
-      MoveGenerator::generateMoves(board, {file, rank}, availableMoves);
+      MoveGenerator::generateMoves(board, {file, rank}, moves);
     }
   }
 
-  if (availableMoves.count == 0) return;
+  if (moves.count == 0) return;
 
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
+  int bestEval = -1000000;
+  int bestMove = 0;
 
-  std::uniform_int_distribution<> dist(0, availableMoves.count - 1);
+  for (int i = 0; i < moves.count; i++) {
+      const Move& move = moves[i];
 
-  Move randomMove = availableMoves[dist(gen)];
+      board.makeMove(move);
 
-  board.makeMove(randomMove);
+      int eval = -Search::searchPosition(board, 5, -1000000, 1000000);
+
+      if (eval > bestEval) {
+        bestEval = eval;
+        bestMove = i;
+      }
+
+      board.undoMove(move);
+  }
+
+  board.makeMove(moves[bestMove]);
 }
