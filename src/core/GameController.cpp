@@ -61,7 +61,7 @@ void GameController::enableBot(Color color) {
 void GameController::makeBotMove() {
   MoveList moves;
   moves.clear();
-
+  
   for (int file = 0; file < 8; file++) {
     for (int rank = 0; rank < 8; rank++) {
       Piece piece = board.getPiece(file, rank);
@@ -76,14 +76,14 @@ void GameController::makeBotMove() {
   if (moves.count == 0) return;
 
   int bestEval = -1000000;
-  int bestMove = 0;
+  int bestMove;
 
   for (int i = 0; i < moves.count; i++) {
       const Move& move = moves[i];
 
       board.makeMove(move);
 
-      int eval = -Search::searchPosition(board, 5, -1000000, 1000000);
+      int eval = -Search::searchPosition(board, 4, -1000000, 1000000);
 
       if (eval > bestEval) {
         bestEval = eval;

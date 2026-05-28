@@ -7,6 +7,10 @@
 class Evaluation {
 public:
   static int evaluateBoard(Board& board, Color color);
+  inline static int getPieceValue(Piece piece) {
+    if (piece >= B_PAWN) return pieceValues[piece - 6];
+    return pieceValues[piece];
+  }
 private:
   static constexpr std::array<int, 7> pieceValues{
     0, // empty

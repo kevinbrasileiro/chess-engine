@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Search.hpp"
 #include "Evaluation.hpp"
 
@@ -30,6 +32,8 @@ int Search::searchPosition(Board& board, int depth, int alpha, int beta) {
     return 0;
   };
 
+  Search::orderMoves(moves);
+
   int bestEval = -1000000;
 
   for (int i = 0; i < moves.count; i++) {
@@ -52,4 +56,24 @@ int Search::searchPosition(Board& board, int depth, int alpha, int beta) {
   }
   
   return alpha;
+}
+
+int Search::scoreMove(const Move& move) {
+  int score = 0;
+
+  if (move.capturedPiece != EMPTY) {
+    score = 10 * Evaluation::getPieceValue(move.capturedPiece) - Evaluation::getPieceValue(move.movedPiece);
+  }
+
+  if (move.flag == PROMOTION) {
+    score += Evaluation::getPieceValue(move.promotedPiece);
+  }
+
+  return score;
+}
+
+void Search::orderMoves(MoveList& moves) {
+  std::sort(moves.moves, moves.moves + moves.count, [](const Move& a, const Move& b) {
+    return Search::scoreMove(a) > Search::scoreMove(b);
+  });
 }
