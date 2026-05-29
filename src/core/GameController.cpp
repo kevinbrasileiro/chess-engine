@@ -16,7 +16,7 @@ void GameController::handleClick(Position clickedPos) {
   MoveList availableMoves;
 
   if (selected) {
-    MoveGenerator::generateMoves(board, selectedPos, availableMoves);
+    MoveGenerator::generatePieceMoves(board, selectedPos, availableMoves);
     bool moved = false;
 
     for (int i = 0; i < availableMoves.count; i++) {
@@ -62,21 +62,12 @@ void GameController::makeBotMove() {
   MoveList moves;
   moves.clear();
   
-  for (int file = 0; file < 8; file++) {
-    for (int rank = 0; rank < 8; rank++) {
-      Piece piece = board.getPiece(file, rank);
-
-      if (piece == EMPTY) continue;
-      if (board.getPieceColor(piece) != botColor) continue;
-      
-      MoveGenerator::generateMoves(board, {file, rank}, moves);
-    }
-  }
+  MoveGenerator::generateAllMoves(board, moves, botColor);
 
   if (moves.count == 0) return;
 
   int bestEval = -1000000;
-  int bestMove;
+  int bestMove = 0;
 
   for (int i = 0; i < moves.count; i++) {
       const Move& move = moves[i];

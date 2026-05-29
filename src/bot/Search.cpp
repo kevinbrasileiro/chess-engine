@@ -13,17 +13,7 @@ int Search::searchPosition(Board& board, int depth, int alpha, int beta) {
   MoveList moves;
   moves.clear();
 
-  for (int rank = 0; rank < 8; ++rank) {
-    for (int file = 0; file < 8; ++file) {
-
-      Piece piece = board.getPiece(file, rank);
-
-      if (piece == EMPTY) continue;
-      if (board.getPieceColor(piece) != sideToMove) continue;
-
-      MoveGenerator::generateMoves(board, {file, rank}, moves);
-    }
-  }
+  MoveGenerator::generateAllMoves(board, moves, sideToMove);
 
   if (moves.count <= 0) {
     if (board.isSquareAttacked(board.findKing(sideToMove), sideToMove)) {

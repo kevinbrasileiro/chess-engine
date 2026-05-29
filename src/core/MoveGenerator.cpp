@@ -1,7 +1,35 @@
 #include <iostream>
 #include "MoveGenerator.hpp"
 
-void MoveGenerator::generateMoves(Board& board, Position pos, MoveList& legalMoves) {
+void MoveGenerator::generateAllMoves(Board& board, MoveList& allMoves, Color side) {  
+  for (int rank = 0; rank < 8; ++rank) {
+    for (int file = 0; file < 8; ++file) {
+
+      Piece piece = board.getPiece(file, rank);
+
+      if (piece == EMPTY) continue;
+      if (board.getPieceColor(piece) != side) continue;
+
+      MoveGenerator::generatePieceMoves(board, {file, rank}, allMoves);
+    }
+  }
+}
+
+void MoveGenerator::generateAllCaptures(Board& board, MoveList& captures, Color side) {
+  MoveList moves;
+
+  MoveGenerator::generateAllMoves(board, moves, side);
+
+  for (int i = 0; i < moves.count; i++) {
+    const Move& move = moves[i];
+
+    if (move.capturedPiece != EMPTY) {
+      captures.add(move);
+    }
+  }
+}
+
+void MoveGenerator::generatePieceMoves(Board& board, Position pos, MoveList& legalMoves) {
   Piece piece = board.getPiece(pos.file, pos.rank);
 
   switch (piece) {
