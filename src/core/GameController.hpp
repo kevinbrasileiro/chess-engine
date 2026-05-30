@@ -12,6 +12,9 @@ public:
 
   void enableBot(Color color);
 
+  inline bool isBotMovePending() const {return botMovePending;}
+  void makeBotMove();
+
 private:
   Board& board;
 
@@ -19,6 +22,7 @@ private:
   int selectedSquare = -1;
 
   bool botEnabled = false;
-  Color botColor = BLACK;
-  void makeBotMove();
+  Color botColor = NO_COLOR;
+
+  bool botMovePending = false;
 };

@@ -100,6 +100,10 @@ int main(int argc, char* argv[]) {
     }
 
     window.display();
+
+    if (controller.isBotMovePending()) {
+      controller.makeBotMove();
+    }
   }
 
   return 0;

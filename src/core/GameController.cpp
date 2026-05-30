@@ -8,7 +8,7 @@
 GameController::GameController(Board& board): board(board) {}
 
 void GameController::handleClick(int clickedSquare) {
-  if (botEnabled && board.getTurn() == botColor) return;
+  if ((botEnabled && board.getTurn() == botColor) || botMovePending) return;
 
   Piece clickedPiece = board.getPiece(clickedSquare);
   Color clickedPieceColor = board.getPieceColor(clickedPiece);
@@ -28,7 +28,7 @@ void GameController::handleClick(int clickedSquare) {
         selected = false;
         selectedSquare = -1;
 
-        if (botEnabled) makeBotMove();
+        if (botEnabled) botMovePending = true;
         break;
       } 
     }
@@ -59,6 +59,8 @@ void GameController::enableBot(Color color) {
 }
 
 void GameController::makeBotMove() {
+  botMovePending = false;
+
   MoveList moves;
   moves.clear();
   
@@ -76,12 +78,15 @@ void GameController::makeBotMove() {
 
       int eval = -Search::searchPosition(board, 4, -1000000, 1000000);
 
+      board.undoMove(move);
+
+      std::cout << move.from << " -> " << move.to << ", eval: " << eval << std::endl;
+
       if (eval > bestEval) {
         bestEval = eval;
         bestMove = i;
       }
 
-      board.undoMove(move);
   }
 
   board.makeMove(moves[bestMove]);
