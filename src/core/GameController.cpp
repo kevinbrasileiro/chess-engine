@@ -16,7 +16,7 @@ void GameController::handleClick(Position clickedPos) {
   MoveList availableMoves;
 
   if (selected) {
-    MoveGenerator::generatePieceMoves(board, selectedPos, availableMoves);
+    MoveGenerator::generatePieceMoves(board, selectedPos, availableMoves, false);
     bool moved = false;
 
     for (int i = 0; i < availableMoves.count; i++) {
@@ -62,7 +62,7 @@ void GameController::makeBotMove() {
   MoveList moves;
   moves.clear();
   
-  MoveGenerator::generateAllMoves(board, moves, botColor);
+  MoveGenerator::generateAllMoves(board, moves, botColor, false);
 
   if (moves.count == 0) return;
 

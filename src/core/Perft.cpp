@@ -34,7 +34,7 @@ U64 perft(Board& board, int depth, bool root) {
       if (board.getPieceColor(piece) != sideToMove) continue;
 
       moves.clear();
-      MoveGenerator::generatePieceMoves(board, pos, moves);
+      MoveGenerator::generatePieceMoves(board, pos, moves, false);
 
       for (int i = 0; i < moves.count; i++) {
         const Move& move = moves[i];

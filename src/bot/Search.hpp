@@ -8,6 +8,7 @@
 class Search {
 public:
   static int searchPosition(Board& board, int depth, int alpha, int beta);
+  static int quiescence(Board& board, int alpha, int beta);
   static void orderMoves(MoveList& moves);
 private:
   static int scoreMove(const Move& move);

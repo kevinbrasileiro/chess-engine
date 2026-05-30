@@ -1,7 +1,7 @@
 #include <iostream>
 #include "MoveGenerator.hpp"
 
-void MoveGenerator::generateAllMoves(Board& board, MoveList& allMoves, Color side) {  
+void MoveGenerator::generateAllMoves(Board& board, MoveList& allMoves, Color side, bool onlyCaptures) {  
   for (int rank = 0; rank < 8; ++rank) {
     for (int file = 0; file < 8; ++file) {
 
@@ -10,58 +10,44 @@ void MoveGenerator::generateAllMoves(Board& board, MoveList& allMoves, Color sid
       if (piece == EMPTY) continue;
       if (board.getPieceColor(piece) != side) continue;
 
-      MoveGenerator::generatePieceMoves(board, {file, rank}, allMoves);
+      MoveGenerator::generatePieceMoves(board, {file, rank}, allMoves, onlyCaptures);
     }
   }
 }
 
-void MoveGenerator::generateAllCaptures(Board& board, MoveList& captures, Color side) {
-  MoveList moves;
-
-  MoveGenerator::generateAllMoves(board, moves, side);
-
-  for (int i = 0; i < moves.count; i++) {
-    const Move& move = moves[i];
-
-    if (move.capturedPiece != EMPTY) {
-      captures.add(move);
-    }
-  }
-}
-
-void MoveGenerator::generatePieceMoves(Board& board, Position pos, MoveList& legalMoves) {
+void MoveGenerator::generatePieceMoves(Board& board, Position pos, MoveList& legalMoves, bool onlyCaptures) {
   Piece piece = board.getPiece(pos.file, pos.rank);
 
   switch (piece) {
     case W_PAWN:
     case B_PAWN:
-      generatePawnMoves(board, pos, legalMoves);
+      generatePawnMoves(board, pos, legalMoves, onlyCaptures);
       break;
 
     case W_KNIGHT:
     case B_KNIGHT:
-      generateKnightMoves(board, pos, legalMoves);
+      generateKnightMoves(board, pos, legalMoves, onlyCaptures);
       break;
 
     case W_BISHOP:
     case B_BISHOP:
-      generateBishopMoves(board, pos, legalMoves);
+      generateBishopMoves(board, pos, legalMoves, onlyCaptures);
       break;
 
     case W_ROOK:
     case B_ROOK:
-      generateRookMoves(board, pos, legalMoves);
+      generateRookMoves(board, pos, legalMoves, onlyCaptures);
       break;
 
     case W_QUEEN:
     case B_QUEEN:
-      generateBishopMoves(board, pos, legalMoves);
-      generateRookMoves(board, pos, legalMoves);
+      generateBishopMoves(board, pos, legalMoves, onlyCaptures);
+      generateRookMoves(board, pos, legalMoves, onlyCaptures);
       break;
 
     case W_KING:
     case B_KING:
-      generateKingMoves(board, pos, legalMoves);
+      generateKingMoves(board, pos, legalMoves, onlyCaptures);
       break;
 
     default:
@@ -69,7 +55,7 @@ void MoveGenerator::generatePieceMoves(Board& board, Position pos, MoveList& leg
   }
 };
 
-void MoveGenerator::generateKnightMoves(Board& board, Position pos, MoveList& moves) {
+void MoveGenerator::generateKnightMoves(Board& board, Position pos, MoveList& moves, bool onlyCaptures) {
   static const int jumps[8][2] = {
     {2, 1},
     {2, -1},
@@ -91,7 +77,7 @@ void MoveGenerator::generateKnightMoves(Board& board, Position pos, MoveList& mo
 
     Piece target = board.getPiece(targetFile, targetRank);
 
-    if (target == EMPTY) {
+    if (target == EMPTY && !onlyCaptures) {
       tryMove(board, {pos, {targetFile, targetRank}, piece, target}, moves);
       continue;
     }
@@ -103,7 +89,7 @@ void MoveGenerator::generateKnightMoves(Board& board, Position pos, MoveList& mo
   }
 }
 
-void MoveGenerator::generateBishopMoves(Board& board, Position pos, MoveList& moves) {
+void MoveGenerator::generateBishopMoves(Board& board, Position pos, MoveList& moves, bool onlyCaptures) {
   static const int directions[4][2] = {
     {-1, -1},
     {-1, 1},
@@ -126,7 +112,7 @@ void MoveGenerator::generateBishopMoves(Board& board, Position pos, MoveList& mo
         }
         break;
       }
-      tryMove(board, {pos, {currentFile, currentRank}, piece, target}, moves);
+      if (!onlyCaptures) tryMove(board, {pos, {currentFile, currentRank}, piece, target}, moves);
 
       currentFile += direction[0];
       currentRank += direction[1];
@@ -134,7 +120,7 @@ void MoveGenerator::generateBishopMoves(Board& board, Position pos, MoveList& mo
   }
 }
 
-void MoveGenerator::generateRookMoves(Board& board, Position pos, MoveList& moves) {
+void MoveGenerator::generateRookMoves(Board& board, Position pos, MoveList& moves, bool onlyCaptures) {
   static const int directions[4][2] = {
     {0, -1},
     {0, 1},
@@ -157,7 +143,7 @@ void MoveGenerator::generateRookMoves(Board& board, Position pos, MoveList& move
         }
         break;
       }          
-      tryMove(board, {pos, {currentFile, currentRank}, piece, target}, moves);
+      if (!onlyCaptures) tryMove(board, {pos, {currentFile, currentRank}, piece, target}, moves);
 
       currentFile += direction[0];
       currentRank += direction[1];
@@ -165,7 +151,7 @@ void MoveGenerator::generateRookMoves(Board& board, Position pos, MoveList& move
   }
 }
 
-void MoveGenerator::generatePawnMoves(Board& board, Position pos, MoveList& moves) {
+void MoveGenerator::generatePawnMoves(Board& board, Position pos, MoveList& moves, bool onlyCaptures) {
   Piece piece = board.getPiece(pos.file, pos.rank);
 
   bool isWhite = board.getPieceColor(piece) == WHITE;
@@ -183,7 +169,7 @@ void MoveGenerator::generatePawnMoves(Board& board, Position pos, MoveList& move
 
   if (forwardRank < 0 || forwardRank > 7) return;
 
-  if (board.getPiece(pos.file, forwardRank) == EMPTY) {
+  if (board.getPiece(pos.file, forwardRank) == EMPTY && !onlyCaptures) {
     if (pos.rank == promotionRank) {
       tryMove(board, {pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION, isWhite ? W_QUEEN : B_QUEEN}, moves);
       tryMove(board, {pos, {pos.file, forwardRank}, piece, EMPTY, PROMOTION, isWhite ? W_ROOK : B_ROOK}, moves);
@@ -230,7 +216,7 @@ void MoveGenerator::generatePawnMoves(Board& board, Position pos, MoveList& move
   }
 }
 
-void MoveGenerator::generateKingMoves(Board& board, Position pos, MoveList& moves) {
+void MoveGenerator::generateKingMoves(Board& board, Position pos, MoveList& moves, bool onlyCaptures) {
   static const int directions[8][2] = {
     {1, 1},
     {1, 0},
@@ -252,12 +238,14 @@ void MoveGenerator::generateKingMoves(Board& board, Position pos, MoveList& move
 
     Piece target = board.getPiece(currentFile, currentRank);
 
-    if (target == EMPTY) {
+    if (target == EMPTY && !onlyCaptures) {
       tryMove(board, {pos, {currentFile, currentRank}, piece, target}, moves);
     } else if (board.getPieceColor(target) != board.getPieceColor(piece)) {
       tryMove(board, {pos, {currentFile, currentRank}, piece, target}, moves);
     }
   }
+
+  if (onlyCaptures) return;
 
   if (piece == W_KING && pos.file == 4 && pos.rank == 7) {
     if (board.castlingRights.whiteKingside) {

@@ -3,9 +3,11 @@
 #include <algorithm>
 #include "Board.hpp"
 
+constexpr const char* startingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 Board::Board() {
   turn = WHITE;
-  setupBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  setupBoard(startingPosition);
 }
 
 void Board::setupBoard(const std::string& fen) {
