@@ -10,8 +10,9 @@ add_executable(ChessEngine
     src/main.cpp
     src/core/Board.cpp
     src/core/MoveGenerator.cpp
-    src/core/Perft.cpp
     src/core/GameController.cpp
+    src/core/Perft.cpp
+    src/core/MoveTables.cpp
 
     src/bot/Evaluation.cpp
     src/bot/Search.cpp

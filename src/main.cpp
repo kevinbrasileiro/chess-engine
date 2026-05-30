@@ -7,11 +7,11 @@
 #include "core/GameController.hpp"
 
 const int TILE_SIZE = 100;
-const int BOARD_SIZE = 8;
 
 int main(int argc, char* argv[]) {
-  sf::RenderWindow window(sf::VideoMode(TILE_SIZE * BOARD_SIZE, TILE_SIZE * BOARD_SIZE), "Chess");
+  sf::RenderWindow window(sf::VideoMode(TILE_SIZE * 8, TILE_SIZE * 8), "Chess");
 
+  MoveTables::init();
   Board board;
   GameController controller(board);
 
@@ -62,31 +62,30 @@ int main(int argc, char* argv[]) {
       if (event.type == sf::Event::Closed) window.close();
       if (event.type != sf::Event::MouseButtonPressed || event.mouseButton.button != sf::Mouse::Left) continue;
 
-      Position clickedPos = {event.mouseButton.x / TILE_SIZE, event.mouseButton.y / TILE_SIZE};
-      controller.handleClick(clickedPos);
+      int clickedSquare = (event.mouseButton.y / TILE_SIZE) * 8 + (event.mouseButton.x / TILE_SIZE);
+      controller.handleClick(clickedSquare);
     }
 
     window.clear();
 
-    for (int file = 0; file < BOARD_SIZE; file++) {
-      for (int rank = 0; rank < BOARD_SIZE; rank++) {
+    for (int boardSquare = 0; boardSquare < 64; boardSquare++) {
         sf::RectangleShape square(sf::Vector2f(TILE_SIZE, TILE_SIZE));
 
-        square.setPosition(file * TILE_SIZE, rank * TILE_SIZE);
+        square.setPosition((boardSquare % 8) * TILE_SIZE, (boardSquare / 8) * TILE_SIZE);
 
-        if ((file + rank) % 2 == 0) {
+        if ((boardSquare % 8 + boardSquare / 8) % 2 == 0) {
           square.setFillColor(sf::Color(240, 217, 181));
         } else {
           square.setFillColor(sf::Color(181, 136, 99));
         }
 
-        if (controller.isSelected({file, rank})) {
+        if (controller.isSelected(boardSquare)) {
           square.setFillColor(sf::Color(240, 238, 132));
         }
 
         window.draw(square);
 
-        Piece piece = board.getPiece(file, rank);
+        Piece piece = board.getPiece(boardSquare);
 
         if (piece == EMPTY) continue;
 
@@ -95,10 +94,9 @@ int main(int argc, char* argv[]) {
         sprite.setTexture(textures[piece]);
 
         sprite.setScale(90.f / 128.f, 90.f / 128.f);
-        sprite.setPosition(file * TILE_SIZE + 5, rank * TILE_SIZE + 5);
+        sprite.setPosition((boardSquare % 8) * TILE_SIZE + 5, (boardSquare / 8) * TILE_SIZE + 5);
 
         window.draw(sprite);
-      }
     }
 
     window.display();

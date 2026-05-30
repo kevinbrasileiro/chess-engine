@@ -12,8 +12,8 @@ enum MoveFlag {
 };
 
 struct Move {
-    Position from;
-    Position to;
+    int from;
+    int to;
 
     Piece movedPiece;
     Piece capturedPiece = EMPTY;

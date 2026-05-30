@@ -2,6 +2,7 @@
 
 #include "Types.hpp"
 #include "Move.hpp"
+#include "MoveTables.hpp"
 
 #include <vector>
 
@@ -13,12 +14,8 @@ class Board {
 public:
   Board();
 
-  inline bool isInside(int file, int rank) const {
-    return file >= 0 && file <= 7 && rank >= 0 && rank <= 7;
-  };
-
-  inline Piece getPiece(int file, int rank) const {
-    return board[file][rank];
+  inline Piece getPiece(int square) const {
+    return board[square];
   }
   inline Color getPieceColor(Piece piece) const {
     if (piece == EMPTY) return NO_COLOR;
@@ -31,10 +28,10 @@ public:
   void makeMove(const Move& move);
   void undoMove(const Move& move);
 
-  Position findKing(Color color) const;
-  bool isSquareAttacked(Position pos, Color defenderColor) const;
+  int findKing(Color color) const;
+  bool isSquareAttacked(int square, Color defenderColor) const;
 
-  int enPassantFile = -1;
+  int enPassantSquare = -1;
   std::vector<int> enPassantHistory;
 
   // CASTLING RIGHTS
@@ -42,11 +39,11 @@ public:
   std::vector<CastlingRights> castlingHistory;
 
 private:
-  Piece board[8][8];
+  Piece board[64];
   Color turn;
 
-  Position wKingPos;
-  Position bKingPos;
+  int wKingPos;
+  int bKingPos;
 
   void updateCastlingRights(const Move& move);
   void moveCastleRook(const Move& move);

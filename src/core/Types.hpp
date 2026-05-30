@@ -1,10 +1,5 @@
 #pragma once
 
-struct Position {
-    int file;
-    int rank;
-};
-
 struct CastlingRights {
     bool whiteKingside = true;
     bool whiteQueenside = true;

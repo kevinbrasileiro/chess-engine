@@ -6,9 +6,9 @@ class GameController {
 public:
   GameController(Board& board);
 
-  void handleClick(Position clickedPos);
+  void handleClick(int clickedSquare);
 
-  bool isSelected(Position pos) const;
+  bool isSelected(int square) const;
 
   void enableBot(Color color);
 
@@ -16,7 +16,7 @@ private:
   Board& board;
 
   bool selected = false;
-  Position selectedPos = {-1, -1};
+  int selectedSquare = -1;
 
   bool botEnabled = false;
   Color botColor = BLACK;

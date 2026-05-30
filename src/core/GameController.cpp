@@ -7,26 +7,26 @@
 
 GameController::GameController(Board& board): board(board) {}
 
-void GameController::handleClick(Position clickedPos) {
+void GameController::handleClick(int clickedSquare) {
   if (botEnabled && board.getTurn() == botColor) return;
 
-  Piece clickedPiece = board.getPiece(clickedPos.file, clickedPos.rank);
+  Piece clickedPiece = board.getPiece(clickedSquare);
   Color clickedPieceColor = board.getPieceColor(clickedPiece);
 
   MoveList availableMoves;
 
   if (selected) {
-    MoveGenerator::generatePieceMoves(board, selectedPos, availableMoves, false);
+    MoveGenerator::generatePieceMoves(board, selectedSquare, availableMoves, false);
     bool moved = false;
 
     for (int i = 0; i < availableMoves.count; i++) {
       const Move& move = availableMoves[i];
-      if (move.to.file == clickedPos.file && move.to.rank == clickedPos.rank) {
+      if (move.to == clickedSquare) {
         board.makeMove(move);
         moved = true;
 
         selected = false;
-        selectedPos = {-1, -1};
+        selectedSquare = -1;
 
         if (botEnabled) makeBotMove();
         break;
@@ -35,20 +35,20 @@ void GameController::handleClick(Position clickedPos) {
 
     if (moved || clickedPiece == EMPTY) {
       selected = false;
-      selectedPos = {-1, -1};
+      selectedSquare = -1;
     } else if (clickedPieceColor == board.getTurn()) {
       selected = true;
-      selectedPos = clickedPos;
+      selectedSquare = clickedSquare;
     }
 
   } else if (clickedPiece != EMPTY && clickedPieceColor == board.getTurn()) {
     selected = true;
-    selectedPos = clickedPos;
+    selectedSquare = clickedSquare;
   }
 }
 
-bool GameController::isSelected(Position pos) const {
-  return pos.file == selectedPos.file && pos.rank == selectedPos.rank;
+bool GameController::isSelected(int square) const {
+  return square == selectedSquare;
 }
 
 void GameController::enableBot(Color color) {
