@@ -22,7 +22,7 @@ int Search::searchPosition(Board& board, int depth, int alpha, int beta) {
     return 0;
   };
 
-  Search::orderMoves(moves);
+  Search::orderMoves(moves, board);
 
   int bestEval = -1000000;
 
@@ -42,20 +42,16 @@ int Search::searchPosition(Board& board, int depth, int alpha, int beta) {
       if (eval > alpha) {
         alpha = eval;
       }
-
   }
-  
   return alpha;
 }
 
 int Search::quiescence(Board& board, int alpha, int beta) {
-  int staticEval = Evaluation::evaluateBoard(board, board.getTurn());
-
-  int bestValue = staticEval;
+  int standPat = Evaluation::evaluateBoard(board, board.getTurn());
   
-  if (bestValue >= beta) return bestValue;
-  if (bestValue > alpha) {
-    alpha = bestValue;
+  if (standPat >= beta) return standPat;
+  if (standPat > alpha) {
+    alpha = standPat;
   }
 
   Color sideToMove = board.getTurn();
@@ -64,7 +60,7 @@ int Search::quiescence(Board& board, int alpha, int beta) {
   moves.clear();
 
   MoveGenerator::generateAllMoves(board, moves, sideToMove, true);
-  Search::orderMoves(moves);
+  Search::orderMoves(moves, board);
 
   for (int i = 0; i < moves.count; i++) {
       const Move& move = moves[i];
@@ -74,20 +70,17 @@ int Search::quiescence(Board& board, int alpha, int beta) {
       board.undoMove(move);
 
       if (score >= beta) return score;
-      if (score > bestValue) {
-        bestValue = score;
-      }
       if (score > alpha) {
         alpha = score;
       }
-  }
-  
-  return bestValue;
+  } 
+  return alpha;
 };
 
 
-int Search::scoreMove(const Move& move) {
+int Search::scoreMove(const Move& move, const Board& board) {
   int score = 0;
+  bool isWhite = board.getPieceColor(move.movedPiece) == WHITE;
 
   if (move.capturedPiece != EMPTY) {
     score = 10 * Evaluation::getPieceValue(move.capturedPiece) - Evaluation::getPieceValue(move.movedPiece);
@@ -97,11 +90,18 @@ int Search::scoreMove(const Move& move) {
     score += Evaluation::getPieceValue(move.promotedPiece);
   }
 
+  const auto& pawns = MoveTables::pawnAttacks[isWhite ? 0 : 1][move.to];
+  for (int i = 0; i < pawns.count; i++) {
+    if (board.getPiece(pawns.squares[i]) == (isWhite ? B_PAWN : W_PAWN)) {
+      score -= Evaluation::getPieceValue(move.movedPiece);
+    }
+  }
+
   return score;
 }
 
-void Search::orderMoves(MoveList& moves) {
-  std::sort(moves.moves, moves.moves + moves.count, [](const Move& a, const Move& b) {
-    return Search::scoreMove(a) > Search::scoreMove(b);
+void Search::orderMoves(MoveList& moves, const Board& board) {
+  std::sort(moves.moves, moves.moves + moves.count, [&board](const Move& a, const Move& b) {
+    return Search::scoreMove(a, board) > Search::scoreMove(b, board);
   });
 }
