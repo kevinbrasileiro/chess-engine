@@ -66,7 +66,7 @@ void MoveGenerator::generateKnightMoves(Board& board, int square, MoveList& move
       continue;
     }
 
-    if (board.getPieceColor(targetPiece) != board.getPieceColor(piece)) {
+    if (targetPiece != EMPTY && board.getPieceColor(targetPiece) != board.getPieceColor(piece)) {
       tryMove(board, {square, targetSquare, piece, targetPiece}, moves);
       continue;
     }
@@ -137,7 +137,7 @@ void MoveGenerator::generateKingMoves(Board& board, int square, MoveList& moves,
       continue;
     }
 
-    if (board.getPieceColor(targetPiece) != board.getPieceColor(piece)) {
+    if (targetPiece != EMPTY && board.getPieceColor(targetPiece) != board.getPieceColor(piece)) {
       tryMove(board, {square, targetSquare, piece, targetPiece}, moves);
       continue;
     }

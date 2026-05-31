@@ -69,7 +69,7 @@ int Search::quiescence(Board& board, int alpha, int beta) {
       int score = -Search::quiescence(board, -beta, -alpha);
       board.undoMove(move);
 
-      if (score >= beta) return score;
+      if (score >= beta) return beta;
       if (score > alpha) {
         alpha = score;
       }
