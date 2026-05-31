@@ -3,6 +3,7 @@
 #include <array>
 
 #include "../core/Board.hpp"
+#include "./PieceSquareTables.hpp"
 
 class Evaluation {
 public:
